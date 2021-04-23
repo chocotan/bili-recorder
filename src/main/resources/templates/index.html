@@ -1,0 +1,32 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>bili-recorder</title>
+    <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/4.0.0/js/bootstrap.min.js}"></script>
+    <link th:href="@{/webjars/bootstrap/4.0.0/css/bootstrap.min.css}" rel="stylesheet"/>
+</head>
+<body>
+1-启用 2-关闭 3-录制中
+<table class="table">
+    <thead>
+    <tr>
+        <th scope="col">#</th>
+        <th scope="col">房间号</th>
+        <th scope="col">状态</th>
+        <th scope="col">文件大小</th>
+        <th scope="col">操作</th>
+    </tr>
+    <tbody>
+    <tr th:each="r:${list}">
+        <th scope="row" th:text="${r.id}"></th>
+        <td th:text="${r.roomId}"></td>
+        <td><span th:remove="tag"  th:text="${r.status}"></span></td>
+        <td th:if="${r.dataSize!=null}" th:text="${r.dataSize}+'M'"></td>
+        <td th:if="${r.dataSize==null}"></td>
+        <td><a th:href="@{/record/startRecord(id=${r.id})}">开始录制</a> <a th:href="@{/record/stopRecord(id=${r.id})}">结束录制</a></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
