@@ -41,7 +41,7 @@ public class LiveStatusCheckJob implements CommandLineRunner {
                     r.setStatus("1");
                     recordRoomRepository.save(r);
                 });
-        es.scheduleAtFixedRate(() -> {
+        es.scheduleWithFixedDelay(() -> {
             // 获取所有启用的房间
             List<RecordRoom> recordRooms = recordRoomRepository.findByStatus("1");
             recordRooms

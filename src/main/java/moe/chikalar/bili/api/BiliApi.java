@@ -29,7 +29,19 @@ public class BiliApi {
         additionalHeaders.put("referer", "https://live.bilibili.com/" + roomId);
         additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
         String res = HttpClientUtil.get(url + "?uid=" + uid, additionalHeaders);
-        BiliResponseDto<BiliMasterDto> resp = JSON.parseObject(res, new TypeReference<>() {});
+        BiliResponseDto<BiliMasterDto> resp = JSON.parseObject(res, new TypeReference<>() {
+        });
+        return resp;
+    }
+
+    public static BiliResponseDto<BiliRoomInfo> getRoomInfo(String roomId, Long uid) throws IOException {
+        String url = "http://api.live.bilibili.com/room/v1/Room/getRoomInfoOld";
+        Map<String, String> additionalHeaders = new HashMap<>();
+        additionalHeaders.put("referer", "https://live.bilibili.com/" + roomId);
+        additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
+        String res = HttpClientUtil.get(url + "?mid=" + uid, additionalHeaders);
+        BiliResponseDto<BiliRoomInfo> resp = JSON.parseObject(res, new TypeReference<>() {
+        });
         return resp;
     }
 
@@ -106,4 +118,18 @@ public class BiliApi {
         private Integer gender;
     }
 
+
+    @Data
+    public static class BiliRoomInfo {
+        private Integer roomStatus;
+        private Integer roundStatus;
+        private Integer liveStatus;
+        private String url;
+        private String title;
+        private String coverc;
+        private Integer online;
+        private Long roomid;
+        private Long broadcastType;
+        private Long onlineHidden;
+    }
 }

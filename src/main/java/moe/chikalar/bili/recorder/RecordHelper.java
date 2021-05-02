@@ -1,7 +1,9 @@
 package moe.chikalar.bili.recorder;
 
 import com.alibaba.fastjson.JSON;
+import javaslang.Tuple2;
 import lombok.extern.slf4j.Slf4j;
+import moe.chikalar.bili.configuration.BiliRecorderProperties;
 import moe.chikalar.bili.dto.ProgressDto;
 import moe.chikalar.bili.dto.RecordConfig;
 import moe.chikalar.bili.entity.RecordRoom;
@@ -34,6 +36,9 @@ public class RecordHelper {
 
     @Autowired
     private RecordRoomRepository recordRoomRepository;
+
+    @Autowired
+    private BiliRecorderProperties properties;
 
     @Autowired
     private RecorderFactory recorderFactory;
@@ -71,25 +76,40 @@ public class RecordHelper {
     }
 
     public void checkStatusAndRecord(RecordRoom recordRoom, Recorder recorder) throws IOException, InterruptedException {
-        if (!recorder.check(recordRoom)._1) {
+        Tuple2<Boolean, String> check = recorder.check(recordRoom);
+        if (!check._1) {
             log.info("[{}] 该房间未在直播 ", recordRoom.getRoomId());
             return;
         }
+        String title = check._2;
+        recordRoom.setTitle(title);
+        recordRoomRepository.save(recordRoom);
         RecordConfig config = JSON.parseObject(recordRoom.getData(), RecordConfig.class);
-        String defaultFolder = System.getProperty("user.home");
-        String folder = StringUtils.isBlank(config.getSaveFolder())? defaultFolder: config.getSaveFolder();
-        String time = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String defaultFolder = properties.getWorkPath();
         String playUrl1 = recorder.getPlayUrl(recordRoom.getRoomId()).get(0);
-        String pathname = folder + File.separator + ".bili" + File.separator + recordRoom.getRoomId() + "-" + time + ".flv";
+        String uname = recordRoom.getUname();
+        String folder = defaultFolder + File.separator + uname;
+        folder = StringUtils.isNotBlank(config.getSaveFolder()) ? config.getSaveFolder() : folder;
+        File folderFile = new File(folder);
+        if (!folderFile.exists()) {
+            folderFile.mkdirs();
+        }
+        String fileName = generateFileName(recordRoom);
+        String pathname = folder + File.separator  + fileName;
         log.info("[{}] 开始录制，保存文件至 {}", recordRoom.getRoomId(), pathname);
         ProgressDto progressDto = ctx.get(recordRoom.getId());
         try {
             FileUtil.record(playUrl1, pathname, progressDto);
         } finally {
-            new FlvCheckerWithBuffer().check(pathname, true);
+            if (new File(pathname).exists())
+                new FlvCheckerWithBuffer().check(pathname, true);
         }
     }
 
+    private String generateFileName(RecordRoom recordRoom) {
+        String time = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        return recordRoom.getRoomId() + "-" + recordRoom.getUname() + "-" + recordRoom.getTitle() + "-" + time + ".flv";
+    }
     public ProgressDto get(Long id) {
         return ctx.get(id);
     }

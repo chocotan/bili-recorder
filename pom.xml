@@ -121,6 +121,55 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>1.2.2</version>
+                <configuration>
+                    <imageName>registry.hub.docker.com/chocotan/bili-recorder:${project.version}</imageName>
+                    <baseImage>openjdk:11.0.11-jdk</baseImage>
+                    <entryPoint>["sh","-c","java $JAVA_OPT -Xmx1024m -Xms1024m -Xmn512m -jar ${project.build.finalName}.jar"]</entryPoint>
+                    <env>
+                    </env>
+                    <runs>
+                        <run>ln -snf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime</run>
+                        <run>echo Asia/Shanghai &gt; /etc/timezone</run>
+                    </runs>
+
+                    <resources>
+                        <resource>
+                            <targetPath>/</targetPath>
+                            <directory>${project.build.directory}</directory>
+                            <include>${project.build.finalName}.jar</include>
+                        </resource>
+                    </resources>
+                    <imageTags>
+                        <imageTag>${project.version}</imageTag>
+                        <imageTag>latest</imageTag>
+                    </imageTags>
+                    <registryUrl>https://registry.hub.docker.com</registryUrl>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>build-image</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>push-image</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                        <configuration>
+                            <imageName>registry.hub.docker.com/chocotan/bili-recorder:${project.version}</imageName>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
         </plugins>
     </build>
 
