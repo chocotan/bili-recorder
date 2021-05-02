@@ -8,11 +8,13 @@
 </head>
 <body>
 1-启用 2-关闭 3-录制中
+<a th:href="@{/record/add}" class="btn btn-info">添加房间</a>
 <table class="table">
     <thead>
     <tr>
         <th scope="col">#</th>
         <th scope="col">房间号</th>
+        <th scope="col">用户名</th>
         <th scope="col">状态</th>
         <th scope="col">文件大小</th>
         <th scope="col">操作</th>
@@ -21,10 +23,16 @@
     <tr th:each="r:${list}">
         <th scope="row" th:text="${r.id}"></th>
         <td th:text="${r.roomId}"></td>
-        <td><span th:remove="tag"  th:text="${r.status}"></span></td>
+        <td th:text="${r.uname}"></td>
+        <td><span th:remove="tag" th:text="${r.statusText}"></span></td>
         <td th:if="${r.dataSize!=null}" th:text="${r.dataSize}+'M'"></td>
         <td th:if="${r.dataSize==null}"></td>
-        <td><a th:href="@{/record/startRecord(id=${r.id})}">开始录制</a> <a th:href="@{/record/stopRecord(id=${r.id})}">结束录制</a></td>
+        <td><a th:href="@{/record/startRecord(id=${r.id})}" class="btn btn-info btn-sm">开始录制</a>
+            <a th:href="@{/record/stopRecord(id=${r.id})}" class="btn btn-danger btn-sm">结束录制</a>
+            <a th:if="${r.status!='3'}" th:href="@{/record/edit(id=${r.id})}" class="btn btn-info btn-sm">编辑</a>
+            <a th:if="${r.status!='3'}" th:href="@{/record/delete(id=${r.id})}" class="btn btn-danger btn-sm">删除</a>
+
+        </td>
     </tr>
     </tbody>
 </table>

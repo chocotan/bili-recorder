@@ -1,7 +1,11 @@
 package moe.chikalar.bili.entity;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import lombok.Data;
 import lombok.extern.java.Log;
+import moe.chikalar.bili.dto.RecordConfig;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -19,6 +23,7 @@ public class RecordRoom {
     // 1-enable 2-disable 3-recording
     private String status;
 
+
     // 上次的异常
     @Lob
     private String lastError;
@@ -32,4 +37,29 @@ public class RecordRoom {
 
     @Transient
     private Long dataSize;
+
+    @Transient
+    public String getStatusText() {
+        if (status != null) {
+            switch (status) {
+                case "1":
+                    return "启用";
+                case "2":
+                    return "禁用";
+                case "3":
+                    return "录制中";
+            }
+        }
+        return "未知数据，请删除";
+    }
+
+    @Transient
+    public String getFormattedData() {
+        try {
+            return JSON.toJSONString(JSON.parseObject(data, RecordConfig.class), SerializerFeature.PrettyFormat,
+                    SerializerFeature.WriteMapNullValue);
+        } catch (Exception e) {
+            return data;
+        }
+    }
 }
