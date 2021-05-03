@@ -38,8 +38,6 @@ public class FlvCheckerWithBufferEx extends FlvCheckerWithBuffer {
 		// 高于0xffffff部分
 		int highCurrenttime = lastTimeStamp >> 24;
 		raf.write(highCurrenttime);
-		log.info(" ,读取timestamps 为：" + timestamp);
-		log.info(" ,写入timestamps 为：" + lastTimeStamp);
 		count++;
 //		if(count > 20)
 //			System.exit(1);

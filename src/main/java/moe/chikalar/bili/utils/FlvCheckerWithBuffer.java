@@ -53,7 +53,7 @@ public class FlvCheckerWithBuffer {
             destFolder = file.getParentFile();
         }
         File fileNew = null;
-        Pattern pattern = Pattern.compile("-checked([0-9]+).flv$");
+        Pattern pattern = Pattern.compile("-output([0-9]+).flv$");
         Matcher matcher = pattern.matcher(file.getName());
         if (matcher.find()) {
             int index = Integer.parseInt(matcher.group(1));

@@ -12,7 +12,7 @@
     <artifactId>bili-recorder</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>bili-recorder</name>
-    <description>Demo project for Spring Boot</description>
+    <description>B站直播录制工具</description>
     <properties>
         <java.version>11</java.version>
     </properties>
@@ -128,7 +128,7 @@
                 <configuration>
                     <imageName>registry.hub.docker.com/chocotan/bili-recorder:${project.version}</imageName>
                     <baseImage>openjdk:11.0.11-jdk</baseImage>
-                    <entryPoint>["sh","-c","java $JAVA_OPT -Xmx1024m -Xms1024m -Xmn512m -jar ${project.build.finalName}.jar"]</entryPoint>
+                    <entryPoint>["sh","-c","java $JAVA_OPT -jar ${project.build.finalName}.jar"]</entryPoint>
                     <env>
                     </env>
                     <runs>

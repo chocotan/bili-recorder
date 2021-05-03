@@ -14,10 +14,6 @@ record:
   check-interval: 60
   work-path: ${user.home}/.bili
 
-
-management.endpoints.web.exposure.include: '*'
-management.endpoint.health.show-details: always
-
 logging:
   file:
     path: ${record.work-path}/log/
