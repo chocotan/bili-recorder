@@ -11,8 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Optional;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -53,8 +53,15 @@ public class LiveStatusCheckJob implements CommandLineRunner {
                         }
                         recordHelper.recordAndErrorHandle(d);
                     });
-
-
+            Calendar cal = Calendar.getInstance();
+            int hour = cal.get(Calendar.HOUR_OF_DAY);
+            if (hour < 8) {
+                // 23-8点降低频率
+                try {
+                    Thread.sleep((long) (properties.getCheckInterval()));
+                } catch (InterruptedException ignored) {
+                }
+            }
         }, 5, properties.getCheckInterval(), TimeUnit.SECONDS);
 
     }

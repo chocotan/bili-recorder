@@ -42,8 +42,13 @@ public class BiliRecorder implements Recorder {
     @Override
     public Tuple2<Boolean, String> check(RecordRoom recordRoom) throws IOException {
         BiliApi.BiliLiveStatus data = BiliApi.getLiveStatus(recordRoom.getRoomId()).getData();
-        BiliApi.BiliRoomInfo roomInfo = BiliApi.getRoomInfo(recordRoom.getRoomId(), data.getUid()).getData();
-        return Tuple.of(data.getLiveStatus() == 1, roomInfo.getTitle());
+        boolean liveStatus = data.getLiveStatus() == 1;
+        if (liveStatus) {
+            BiliApi.BiliRoomInfo roomInfo = BiliApi.getRoomInfo(recordRoom.getRoomId(), data.getUid()).getData();
+            return Tuple.of(liveStatus, roomInfo.getTitle());
+        } else {
+            return Tuple.of(liveStatus, "");
+        }
     }
 
     @Override
