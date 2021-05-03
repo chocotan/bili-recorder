@@ -104,16 +104,23 @@ public class RecordHelper {
             FileUtil.record(playUrl1, pathname, progressDto);
         } finally {
             if (new File(pathname).exists()) {
-                File newFile = new FlvCheckerWithBufferEx().check(pathname, !config.isDebug());
-                if (StringUtils.isNotBlank(config.getMoveFolder())) {
-                    File moveParentFolder = new File(config.getMoveFolder());
-                    if(!moveParentFolder.exists()){
-                        moveParentFolder.mkdirs();
+                recordPool.submit(() -> {
+                    try {
+                        File newFile = new FlvCheckerWithBufferEx().check(pathname, !config.isDebug());
+                        if (StringUtils.isNotBlank(config.getMoveFolder())) {
+                            File moveParentFolder = new File(config.getMoveFolder());
+                            if (!moveParentFolder.exists()) {
+                                moveParentFolder.mkdirs();
+                            }
+                            File moveFile = new File(moveParentFolder, newFile.getName());
+                            Thread.sleep(1000);
+                            Files.move(newFile, moveFile);
+                        }
+                    } catch (Exception e) {
+                        log.info(ExceptionUtils.getStackTrace(e));
                     }
-                    File moveFile = new File(moveParentFolder, newFile.getName());
-                    Thread.sleep(1000);
-                    Files.move(newFile, moveFile);
-                }
+                });
+
             }
         }
     }
