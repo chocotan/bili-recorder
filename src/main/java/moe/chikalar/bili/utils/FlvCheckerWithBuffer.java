@@ -60,7 +60,7 @@ public class FlvCheckerWithBuffer {
             index++;
             fileNew = new File(destFolder, file.getName().replaceFirst("[0-9]+.flv$", index + ".flv"));
         } else {
-            fileNew = new File(destFolder, file.getName().replaceFirst(".flv$", "-checked0.flv"));
+            fileNew = new File(destFolder, file.getName().replaceFirst(".flv$", "-output.flv"));
         }
         RafWBuffered rafNew = new RafWBuffered(fileNew, "rw");
         // 复制头部

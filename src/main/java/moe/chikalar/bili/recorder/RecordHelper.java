@@ -1,6 +1,7 @@
 package moe.chikalar.bili.recorder;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.io.Files;
 import javaslang.Tuple2;
 import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.bili.configuration.BiliRecorderProperties;
@@ -10,6 +11,7 @@ import moe.chikalar.bili.entity.RecordRoom;
 import moe.chikalar.bili.repo.RecordRoomRepository;
 import moe.chikalar.bili.utils.FileUtil;
 import moe.chikalar.bili.utils.FlvCheckerWithBuffer;
+import moe.chikalar.bili.utils.FlvCheckerWithBufferEx;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,14 +104,15 @@ public class RecordHelper {
             FileUtil.record(playUrl1, pathname, progressDto);
         } finally {
             if (new File(pathname).exists()) {
-                File newFile = new FlvCheckerWithBuffer().check(pathname, true);
+                File newFile = new FlvCheckerWithBufferEx().check(pathname, !config.isDebug());
                 if (StringUtils.isNotBlank(config.getMoveFolder())) {
                     File moveParentFolder = new File(config.getMoveFolder());
                     if(!moveParentFolder.exists()){
                         moveParentFolder.mkdirs();
                     }
                     File moveFile = new File(moveParentFolder, newFile.getName());
-                    newFile.renameTo(moveFile);
+                    Thread.sleep(1000);
+                    Files.move(newFile, moveFile);
                 }
             }
         }

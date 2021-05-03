@@ -8,4 +8,5 @@ public class RecordConfig {
     private String uname;
     private String saveFolder;
     private String moveFolder;
+    private boolean debug = false;
 }
