@@ -95,14 +95,23 @@ public class RecordHelper {
             folderFile.mkdirs();
         }
         String fileName = generateFileName(recordRoom);
-        String pathname = folder + File.separator  + fileName;
+        String pathname = folder + File.separator + fileName;
         log.info("[{}] 开始录制，保存文件至 {}", recordRoom.getRoomId(), pathname);
         ProgressDto progressDto = ctx.get(recordRoom.getId());
         try {
             FileUtil.record(playUrl1, pathname, progressDto);
         } finally {
-            if (new File(pathname).exists())
-                new FlvCheckerWithBuffer().check(pathname, true);
+            if (new File(pathname).exists()) {
+                File newFile = new FlvCheckerWithBuffer().check(pathname, true);
+                if (StringUtils.isNotBlank(config.getMoveFolder())) {
+                    File moveParentFolder = new File(config.getMoveFolder());
+                    if(!moveParentFolder.exists()){
+                        moveParentFolder.mkdirs();
+                    }
+                    File moveFile = new File(moveParentFolder, newFile.getName());
+                    newFile.renameTo(moveFile);
+                }
+            }
         }
     }
 
@@ -110,6 +119,7 @@ public class RecordHelper {
         String time = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
         return recordRoom.getRoomId() + "-" + recordRoom.getUname() + "-" + recordRoom.getTitle() + "-" + time + ".flv";
     }
+
     public ProgressDto get(Long id) {
         return ctx.get(id);
     }

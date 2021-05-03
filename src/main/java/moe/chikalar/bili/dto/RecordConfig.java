@@ -7,4 +7,5 @@ public class RecordConfig {
     private String roomId;
     private String uname;
     private String saveFolder;
+    private String moveFolder;
 }

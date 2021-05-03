@@ -23,24 +23,24 @@ public class FlvCheckerWithBuffer {
     // 用于缓冲
     private static byte[] buffer = new byte[1024 * 1024 * 4];
 
-    public void check(String path) throws IOException {
-        check(path, false, false);
+    public File check(String path) throws IOException {
+        return  check(path, false, false);
     }
 
-    public void check(String path, boolean deleteOnchecked) throws IOException {
-        check(path, deleteOnchecked, false);
+    public File check(String path, boolean deleteOnchecked) throws IOException {
+        return check(path, deleteOnchecked, false);
     }
 
-    public void check(String path, boolean deleteOnchecked, boolean splitScripts) throws IOException {
-        check(path, deleteOnchecked, splitScripts, splitScripts, null);
+    public File check(String path, boolean deleteOnchecked, boolean splitScripts) throws IOException {
+        return  check(path, deleteOnchecked, splitScripts, splitScripts, null);
     }
 
-    public void check(String path, boolean deleteOnchecked, boolean splitScripts, String saveFolder)
+    public File check(String path, boolean deleteOnchecked, boolean splitScripts, String saveFolder)
             throws IOException {
-        check(path, deleteOnchecked, splitScripts, splitScripts, saveFolder);
+        return   check(path, deleteOnchecked, splitScripts, splitScripts, saveFolder);
     }
 
-    public void check(String path, boolean deleteOnchecked, boolean splitScripts, boolean splitAVHeaders,
+    public File check(String path, boolean deleteOnchecked, boolean splitScripts, boolean splitAVHeaders,
                       String saveFolder) throws IOException {
         log.info("校对时间戳开始...");
         File file = new File(path);
@@ -75,6 +75,7 @@ public class FlvCheckerWithBuffer {
         if (deleteOnchecked) {
             file.delete();
         }
+        return fileNew;
     }
 
     private void checkTag(RafRBuffered raf, RafWBuffered rafNew, File fileNew, boolean splitScripts,
