@@ -2,6 +2,7 @@ package moe.chikalar.bili.recorder;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.io.Files;
+import com.hybhub.util.concurrent.ConcurrentSetBlockingQueue;
 import javaslang.Tuple2;
 import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.bili.configuration.BiliRecorderProperties;
@@ -10,7 +11,6 @@ import moe.chikalar.bili.dto.RecordConfig;
 import moe.chikalar.bili.entity.RecordRoom;
 import moe.chikalar.bili.repo.RecordRoomRepository;
 import moe.chikalar.bili.utils.FileUtil;
-import moe.chikalar.bili.utils.FlvCheckerWithBuffer;
 import moe.chikalar.bili.utils.FlvCheckerWithBufferEx;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -20,10 +20,7 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -34,7 +31,7 @@ public class RecordHelper {
 
     private final Map<Long, ProgressDto> ctx = new HashMap<>();
 
-    private static final ExecutorService recordPool = Executors.newFixedThreadPool(100);
+    private static final ExecutorService tagPool = Executors.newFixedThreadPool(100);
 
     @Autowired
     private RecordRoomRepository recordRoomRepository;
@@ -44,28 +41,47 @@ public class RecordHelper {
 
     @Autowired
     private RecorderFactory recorderFactory;
+    @Autowired
+    private LinkedList<Long> recordQueue;
 
     public void recordAndErrorHandle(RecordRoom recordRoom) {
+        log.info("[{}] 接收到录制任务", recordRoom.getRoomId());
         String data = recordRoom.getData();
         Optional<Recorder> recorderOpt = recorderFactory.getRecorder(recordRoom.getType());
         if (recorderOpt.isPresent()) {
             Recorder recorder = recorderOpt.get();
-            Future<?> submit = recordPool.submit(() -> {
+            Future<?> submit = tagPool.submit(() -> {
                 RecordConfig config = JSON.parseObject(data, RecordConfig.class);
                 try {
-                    // doRecord
-                    // 检查房间是否正在直播
                     checkStatusAndRecord(recordRoom, recorder);
-                    remove(recordRoom.getId());
                 } catch (Exception e) {
                     // 异常时将状态设置为1, 记录异常日志
                     recordRoom.setLastError(ExceptionUtils.getStackTrace(e));
                     log.info("[{}] 录制发生异常 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(e));
                 } finally {
+                    log.info("[{}] 录制结束，{}秒后检查直播状态", recordRoom.getRoomId(), config.getRetryInterval());
+                    remove(recordRoom.getId());
                     recordRoom.setStatus("1");
                     recordRoom.setLastError("");
                     recordRoomRepository.save(recordRoom);
-                    remove(recordRoom.getId());
+                    // 结束后需要检查当前直播状态，如果仍然是正在直播，那么需要将其加入录制队列
+                    Tuple2<Boolean, String> check = null;
+                    try {
+                        Thread.sleep(config.getRetryInterval() * 1000);
+                        if(!recordQueue.contains(recordRoom.getId())){
+                            check = recorder.check(recordRoom);
+                            if (check._1) {
+                                // 加入录制队列
+                                log.info("[{}] 用户仍然在直播，疑似网络波动导致，将其加入录制队列",
+                                        recordRoom.getRoomId());
+                                recordQueue.offer(recordRoom.getId());
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+
+
                 }
             });
             put(recordRoom.getId(), new ProgressDto(false));
@@ -78,6 +94,7 @@ public class RecordHelper {
     }
 
     public void checkStatusAndRecord(RecordRoom recordRoom, Recorder recorder) throws IOException, InterruptedException {
+        log.info("[{}] 准备检查房间是否在直播", recordRoom.getRoomId());
         Tuple2<Boolean, String> check = recorder.check(recordRoom);
         if (!check._1) {
             log.info("[{}] 该房间未在直播 ", recordRoom.getRoomId());
@@ -104,7 +121,7 @@ public class RecordHelper {
             FileUtil.record(playUrl1, pathname, progressDto);
         } finally {
             if (new File(pathname).exists()) {
-                recordPool.submit(() -> {
+                tagPool.submit(() -> {
                     try {
                         File newFile = new FlvCheckerWithBufferEx().check(pathname, !config.isDebug());
                         if (StringUtils.isNotBlank(config.getMoveFolder())) {

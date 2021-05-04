@@ -9,4 +9,5 @@ public class RecordConfig {
     private String saveFolder;
     private String moveFolder;
     private boolean debug = false;
+    private Long retryInterval = 20L;
 }

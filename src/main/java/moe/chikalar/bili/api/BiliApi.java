@@ -13,7 +13,6 @@ import java.util.Map;
 
 public class BiliApi {
 
-
     public static BiliResponseDto<BiliLiveStatus> getLiveStatus(String roomId) throws IOException {
         Map<String, String> additionalHeaders = new HashMap<>();
         additionalHeaders.put("referer", "https://live.bilibili.com/" + roomId);
@@ -35,7 +34,7 @@ public class BiliApi {
     }
 
     public static BiliResponseDto<BiliRoomInfo> getRoomInfo(String roomId, Long uid) throws IOException {
-        String url = "http://api.live.bilibili.com/room/v1/Room/getRoomInfoOld";
+        String url = "https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld";
         Map<String, String> additionalHeaders = new HashMap<>();
         additionalHeaders.put("referer", "https://live.bilibili.com/" + roomId);
         additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");

@@ -32,6 +32,7 @@ public class BiliRecorder implements Recorder {
                 BiliApi.BiliResponseDto<BiliApi.BiliMasterDto> masterInfo = BiliApi.getMasterInfo(room.getRoomId(), uid);
                 if (liveStatus.getCode() == 0) {
                     room.setUname(masterInfo.getData().getInfo().getUname());
+                    room.setUid(Long.valueOf(masterInfo.getData().getInfo().getUid()));
                 }
             }
         } catch (IOException e) {
@@ -41,10 +42,20 @@ public class BiliRecorder implements Recorder {
 
     @Override
     public Tuple2<Boolean, String> check(RecordRoom recordRoom) throws IOException {
-        BiliApi.BiliLiveStatus data = BiliApi.getLiveStatus(recordRoom.getRoomId()).getData();
-        boolean liveStatus = data.getLiveStatus() == 1;
+//        BiliApi.BiliLiveStatus data = BiliApi.getLiveStatus(recordRoom.getRoomId()).getData();
+//        boolean liveStatus = data.getLiveStatus() == 1;
+//        if (liveStatus) {
+//            BiliApi.BiliRoomInfo roomInfo = BiliApi.getRoomInfo(recordRoom.getRoomId(), data.getUid()).getData();
+//            return Tuple.of(liveStatus, roomInfo.getTitle());
+//        } else {
+//            return Tuple.of(liveStatus, "");
+//        }
+
+        BiliApi.BiliRoomInfo roomInfo = BiliApi.getRoomInfo(recordRoom.getRoomId(),
+                recordRoom.getUid()).getData();
+
+        boolean liveStatus = roomInfo.getLiveStatus() == 1;
         if (liveStatus) {
-            BiliApi.BiliRoomInfo roomInfo = BiliApi.getRoomInfo(recordRoom.getRoomId(), data.getUid()).getData();
             return Tuple.of(liveStatus, roomInfo.getTitle());
         } else {
             return Tuple.of(liveStatus, "");

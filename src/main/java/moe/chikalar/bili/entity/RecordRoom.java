@@ -16,6 +16,7 @@ public class RecordRoom {
     private Long id;
     private String roomId;
     private String uname;
+    private Long uid;
     // bili-1
     private String type;
     // 1-enable 2-disable 3-recording
@@ -61,5 +62,20 @@ public class RecordRoom {
         } catch (Exception e) {
             return data;
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        RecordRoom that = (RecordRoom) o;
+
+        return id.equals(that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }
