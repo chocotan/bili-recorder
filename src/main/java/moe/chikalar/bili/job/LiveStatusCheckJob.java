@@ -54,7 +54,8 @@ public class LiveStatusCheckJob implements CommandLineRunner {
             List<RecordRoom> recordRooms = recordRoomRepository.findByStatus("1");
             recordRooms
                     .forEach(d -> {
-                        recordQueue.add(d.getId());
+                        if (!recordQueue.contains(d.getId()))
+                            recordQueue.add(d.getId());
                     });
             // 如果距离上次直播时间爱你
             Calendar cal = Calendar.getInstance();
@@ -87,6 +88,7 @@ public class LiveStatusCheckJob implements CommandLineRunner {
                     // 只有没有在录播中的 才录制
                     if (currentRecordRoom.getStatus().equals("1")) {
                         recordHelper.recordAndErrorHandle(currentRecordRoom);
+                        Thread.sleep(2000L);
                     }
                 } catch (Exception e) {
                     // ignored

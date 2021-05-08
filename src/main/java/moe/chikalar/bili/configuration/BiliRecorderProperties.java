@@ -8,6 +8,6 @@ import org.springframework.stereotype.Component;
 @Component
 @ConfigurationProperties(prefix = "record")
 public class BiliRecorderProperties {
-    private Long checkInterval = 60L;
+    private Long checkInterval = 40L;
     private String workPath;
 }
