@@ -57,7 +57,6 @@ public class LiveStatusCheckJob implements CommandLineRunner {
                         if (!recordQueue.contains(d.getId()))
                             recordQueue.add(d.getId());
                     });
-            // 如果距离上次直播时间爱你
             Calendar cal = Calendar.getInstance();
             int hour = cal.get(Calendar.HOUR_OF_DAY);
             if (hour < 8) {
