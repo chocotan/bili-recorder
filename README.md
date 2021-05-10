@@ -1,8 +1,9 @@
 # bilibili直播录播工具
-----
+
+[![Maven](https://github.com/chocotan/bili-recorder/actions/workflows/maven-publish.yml/badge.svg?branch=master)](https://github.com/chocotan/bili-recorder/actions/workflows/maven-publish.yml)
+
 这是一个大概开发好已经能用的录播工具
 
----
 ## 打包
 * 你需要Java 11和maven才能正常打包
 * 运行命令 `mvn clean package -Dmaven.test.skip`
