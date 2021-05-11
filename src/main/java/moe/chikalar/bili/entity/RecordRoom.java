@@ -17,7 +17,7 @@ public class RecordRoom {
     private String roomId;
     private String uname;
     private Long uid;
-    // bili-1
+    // bili-1 kugou-2
     private String type;
     // 1-enable 2-disable 3-recording
     private String status;

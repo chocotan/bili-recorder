@@ -27,8 +27,9 @@
                 <label for="type" class="col-sm-2 col-form-label">类型</label>
                 <div class="col-sm-10">
                     <label>
-                        <select id="type" disabled name="type" class="form-control">
+                        <select id="type" disabled name="type" class="form-control" th:value="${obj.type}">
                             <option value="bili">bili</option>
+                            <option value="kugou">kugou</option>
                         </select>
                     </label>
                 </div>

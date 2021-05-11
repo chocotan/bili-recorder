@@ -59,29 +59,13 @@ public class RecordHelper {
                     recordRoom.setLastError(ExceptionUtils.getStackTrace(e));
                     log.info("[{}] 录制发生异常 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(e));
                 } finally {
-                    log.info("[{}] 录制结束，{}秒后检查直播状态", recordRoom.getRoomId(), config.getRetryInterval());
+                    log.info("[{}] 录制结束", recordRoom.getRoomId());
                     remove(recordRoom.getId());
                     recordRoom.setStatus("1");
                     recordRoom.setLastError("");
                     recordRoomRepository.save(recordRoom);
-                    // 结束后需要检查当前直播状态，如果仍然是正在直播，那么需要将其加入录制队列
-                    Tuple2<Boolean, String> check = null;
-                    try {
-                        Thread.sleep(config.getRetryInterval() * 1000);
-                        if(!recordQueue.contains(recordRoom.getId())){
-                            check = recorder.check(recordRoom);
-                            if (check._1) {
-                                // 加入录制队列
-                                log.info("[{}] 用户仍然在直播，疑似网络波动导致，将其加入录制队列",
-                                        recordRoom.getRoomId());
-                                recordQueue.offer(recordRoom.getId());
-                            }
-                        }
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-
-
+                    // 临时注释掉，结束后需要检查当前直播状态，如果仍然是正在直播，那么需要将其加入录制队列
+                    // checkLiveStatusAfterRecord(recordRoom, recorder, config);
                 }
             });
             put(recordRoom.getId(), new ProgressDto(false));
@@ -93,6 +77,30 @@ public class RecordHelper {
         }
     }
 
+    private void checkLiveStatusAfterRecord(RecordRoom recordRoom, Recorder recorder, RecordConfig config) {
+        Tuple2<Boolean, String> check = null;
+        try {
+            Thread.sleep(config.getRetryInterval() * 1000);
+            if (!recordQueue.contains(recordRoom.getId())) {
+                check = recorder.check(recordRoom);
+                if (check._1) {
+                    // 加入录制队列
+                    log.info("[{}] 用户仍然在直播，疑似网络波动导致，将其加入录制队列",
+                            recordRoom.getRoomId());
+                    // 再判断录制状态，只有没有在录制的才加入录制队列
+                    Optional<RecordRoom> roomOpt = recordRoomRepository.findById(recordRoom.getId());
+                    roomOpt.ifPresent(o -> {
+                        if ("1".equals(o.getStatus()))
+                            recordQueue.offer(recordRoom.getId());
+                    });
+
+                }
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void checkStatusAndRecord(RecordRoom recordRoom, Recorder recorder) throws IOException, InterruptedException {
         log.info("[{}] 准备检查房间是否在直播", recordRoom.getRoomId());
         Tuple2<Boolean, String> check = recorder.check(recordRoom);
@@ -101,11 +109,19 @@ public class RecordHelper {
             return;
         }
         String title = check._2;
+        if (StringUtils.isBlank(title)) {
+            title = "直播";
+        }
         recordRoom.setTitle(title);
         recordRoomRepository.save(recordRoom);
         RecordConfig config = JSON.parseObject(recordRoom.getData(), RecordConfig.class);
         String defaultFolder = properties.getWorkPath();
-        String playUrl1 = recorder.getPlayUrl(recordRoom.getRoomId()).get(0);
+        List<String> playUrl = recorder.getPlayUrl(recordRoom.getRoomId());
+        if (playUrl == null || playUrl.size() == 0) {
+            log.info("[{}] 该房间未在直播，无法获取播放地址 ", recordRoom.getRoomId());
+            return;
+        }
+        String playUrl1 = playUrl.get(0);
         String uname = recordRoom.getUname();
         String folder = defaultFolder + File.separator + uname;
         folder = StringUtils.isNotBlank(config.getSaveFolder()) ? config.getSaveFolder() : folder;

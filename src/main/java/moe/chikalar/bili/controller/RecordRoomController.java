@@ -89,6 +89,12 @@ public class RecordRoomController {
     @GetMapping("stopRecord")
     public String stopRecord(Long id) {
         log.info("即将停止录制 {} ", id);
+        log.info("因为是手工停止，将状态设置为 禁用");
+        recordRoomRepository.findById(id)
+                .ifPresent(o -> {
+                    o.setStatus("2");
+                    recordRoomRepository.save(o);
+                });
         ProgressDto progressDto = recordHelper.get(id);
         if (progressDto != null) {
             progressDto.getStopStatus().set(true);
@@ -119,9 +125,9 @@ public class RecordRoomController {
     }
 
     @GetMapping("edit")
-    public String editGet(Long id, Model model){
+    public String editGet(Long id, Model model) {
         Optional<RecordRoom> recordRoom = recordRoomRepository.findById(id);
-        if(recordRoom.isPresent()){
+        if (recordRoom.isPresent()) {
             model.addAttribute("obj", recordRoom.get());
             return "edit";
         }
@@ -130,9 +136,9 @@ public class RecordRoomController {
     }
 
     @PostMapping("edit")
-    public String editPost(String status, String data, Long id){
+    public String editPost(String status, String data, Long id) {
         Optional<RecordRoom> recordRoom = recordRoomRepository.findById(id);
-        if(recordRoom.isPresent()){
+        if (recordRoom.isPresent()) {
             RecordRoom s = recordRoom.get();
             s.setStatus(status);
             s.setData(data);

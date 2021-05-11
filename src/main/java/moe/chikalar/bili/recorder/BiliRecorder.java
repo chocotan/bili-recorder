@@ -16,11 +16,6 @@ public class BiliRecorder implements Recorder {
         return BiliApi.getLiveStatus(roomId);
     }
 
-    public void getMasterInfo() {
-        String url = "http://api.live.bilibili.com/live_user/v1/Master/info";
-
-    }
-
     @Override
     public void onAdd(RecordRoom room) {
         BiliApi.BiliResponseDto<BiliApi.BiliLiveStatus> liveStatus = null;
@@ -42,15 +37,6 @@ public class BiliRecorder implements Recorder {
 
     @Override
     public Tuple2<Boolean, String> check(RecordRoom recordRoom) throws IOException {
-//        BiliApi.BiliLiveStatus data = BiliApi.getLiveStatus(recordRoom.getRoomId()).getData();
-//        boolean liveStatus = data.getLiveStatus() == 1;
-//        if (liveStatus) {
-//            BiliApi.BiliRoomInfo roomInfo = BiliApi.getRoomInfo(recordRoom.getRoomId(), data.getUid()).getData();
-//            return Tuple.of(liveStatus, roomInfo.getTitle());
-//        } else {
-//            return Tuple.of(liveStatus, "");
-//        }
-
         BiliApi.BiliRoomInfo roomInfo = BiliApi.getRoomInfo(recordRoom.getRoomId(),
                 recordRoom.getUid()).getData();
 

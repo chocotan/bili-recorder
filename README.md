@@ -29,6 +29,12 @@ docker run -d -p 30000:30000 -v $HOME/.bili:/bilirecord --env JAVA_OPT="-Drecord
 ```
 你可以自行修改命令中的端口号和work-path
 
+
+## 支持的直播平台
+1. bilibili
+2. 酷狗繁星直播
+
+
 ## 感谢
 * Flv文件的工具类源码来自 [BilibiliLiveRecorder](https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder)
 * B站API的接口和字段定义来自 [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)
