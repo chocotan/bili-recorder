@@ -22,6 +22,13 @@
 * docker repo见 [此处](https://hub.docker.com/r/chocotan/bili-recorder)
 * 你可以通过 **JAVA_OPT** 这个 **环境变量** 指定启动参数，示例如下 `-Drecord.work-path=/bilirecord -Xmx512m -Xms512m -Xmn256m`
 
+下面是docker命令示例
+```shell
+docker pull chocotan/bili-recorder:latest
+docker run -d -p 30000:30000 -v $HOME/.bili:/bilirecord --env JAVA_OPT="-Drecord.work-path=/bilirecord -Xmx512m -Xms512m -Xmn256m" chocotan/bili-recorder
+```
+你可以自行修改命令中的端口号和work-path
+
 ## 感谢
 * Flv文件的工具类源码来自 [BilibiliLiveRecorder](https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder)
 * B站API的接口和字段定义来自 [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)
