@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
+import moe.chikalar.bili.configuration.BiliRecorderProperties;
 import moe.chikalar.bili.dto.ProgressDto;
 import moe.chikalar.bili.dto.RecordConfig;
 import moe.chikalar.bili.entity.RecordRoom;
@@ -31,6 +32,9 @@ public class RecordRoomController {
 
     @Autowired
     private RecorderFactory recorderFactory;
+
+    @Autowired
+    private BiliRecorderProperties properties;
 
 
     public RecordRoomController(RecordRoomRepository recordRoomRepository) {
@@ -73,6 +77,7 @@ public class RecordRoomController {
         RecordConfig config = new RecordConfig();
         config.setRoomId(roomId);
         config.setUname(recordRoom.getUname());
+        config.setFixTag(properties.getFlvFixTs());
         recordRoom.setData(JSON.toJSONString(config, SerializerFeature.WriteMapNullValue));
         recordRoomRepository.save(recordRoom);
         return "redirect:/record";

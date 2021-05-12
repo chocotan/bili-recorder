@@ -13,6 +13,7 @@
 * record.work-path: 工作目录，不管是h2数据库文件、日志，还是录播位置，默认值为`${user.home}/.bili`
 * record.check-interval: 检查直播间状态的间隔，单位是秒，默认值为60
 * server.port: 启动后的端口，默认值为30000
+* record.flv-fix-ts: 是否修复flv文件的时间戳，默认为false
 
 ## 使用
 * 你可以使用 `mvn clean package -Dmaven.test.skip` 命令打包后使用 java -jar 命令启动
@@ -29,6 +30,8 @@ docker run -d -p 30000:30000 -v $HOME/.bili:/bilirecord --env JAVA_OPT="-Drecord
 ```
 你可以自行修改命令中的端口号和work-path
 
+## ffmpeg
+本项目使用ffmpeg来修复flv视频时间戳，当`record.flv-fix-ts=true`时，你需要将ffmpeg添加至PATH中。
 
 ## 支持的直播平台
 1. bilibili
