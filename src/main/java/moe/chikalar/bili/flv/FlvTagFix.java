@@ -1,5 +1,6 @@
 package moe.chikalar.bili.flv;
 
+import com.github.kokorin.jaffree.LogLevel;
 import com.github.kokorin.jaffree.ffmpeg.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -12,10 +13,11 @@ import java.util.concurrent.atomic.AtomicLong;
 @Slf4j
 public class FlvTagFix {
     public File fix(String flvPath, Boolean delete) throws IOException {
-        String newFlvPath = flvPath.replaceAll("(.*)\\.flv", "$1-output2.flv");
+        String newFlvPath = flvPath.replaceAll("(.*)\\.flv", "$1-fixed.flv");
         final AtomicLong duration = new AtomicLong();
         FFmpegResult execute = FFmpeg.atPath()
                 .addInput(UrlInput.fromUrl(flvPath))
+                .setLogLevel(LogLevel.INFO)
                 .setOverwriteOutput(true)
                 .addArguments("-c:a", "copy")
                 .addArguments("-c:v", "copy")

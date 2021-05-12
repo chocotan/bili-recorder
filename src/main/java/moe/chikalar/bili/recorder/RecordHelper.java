@@ -145,8 +145,9 @@ public class RecordHelper {
                         if (config.isFixTag()) {
                             try {
                                 newFile = fix.fix(pathname, !config.isDebug());
+                                log.info("[{}] 成功修复时间戳 {}", recordRoom.getRoomId(), pathname);
                             } catch (Exception e) {
-                                log.info("[{}] 修复时间戳失败", recordRoom.getRoomId());
+                                log.info("[{}] 修复时间戳失败 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(e));
                             }
                         }
                         if (StringUtils.isNotBlank(config.getMoveFolder())) {
@@ -169,7 +170,7 @@ public class RecordHelper {
 
     private String generateFileName(RecordRoom recordRoom) {
         String time = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
-        return recordRoom.getRoomId() + "-" + recordRoom.getUname() + "-" + recordRoom.getTitle() + "-" + time + ".flv";
+        return recordRoom.getRoomId() + "-" + recordRoom.getUname() + "-" + time + "-" + recordRoom.getTitle() + ".flv";
     }
 
     public ProgressDto get(Long id) {

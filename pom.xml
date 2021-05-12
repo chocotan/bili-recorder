@@ -14,7 +14,7 @@
     <name>bili-recorder</name>
     <description>B站直播录制工具</description>
     <properties>
-        <java.version>8</java.version>
+        <java.version>11</java.version>
     </properties>
     <dependencies>
         <dependency>
@@ -137,7 +137,7 @@
                 <version>1.2.2</version>
                 <configuration>
                     <imageName>registry.hub.docker.com/chocotan/bili-recorder:${project.version}</imageName>
-                    <baseImage>kperson/alpine-java-8-ffmpeg:latest</baseImage>
+                    <baseImage>lm2343635/openjdk-11-slim-ffmpeg:latest</baseImage>
                     <entryPoint>["sh","-c","java $JAVA_OPT -jar ${project.build.finalName}.jar"]</entryPoint>
                     <env>
                     </env>
