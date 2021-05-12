@@ -8,7 +8,7 @@ public class RecordConfig {
     private String uname;
     private String saveFolder;
     private String moveFolder;
-    private boolean fixTag = false;
+    private boolean fixTag = true;
     private boolean debug = false;
     private Long retryInterval = 20L;
 }

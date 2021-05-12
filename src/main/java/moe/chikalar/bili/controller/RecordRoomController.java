@@ -7,12 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.bili.dto.ProgressDto;
 import moe.chikalar.bili.dto.RecordConfig;
 import moe.chikalar.bili.entity.RecordRoom;
-import moe.chikalar.bili.recorder.BiliRecorder;
 import moe.chikalar.bili.recorder.RecordHelper;
 import moe.chikalar.bili.recorder.Recorder;
 import moe.chikalar.bili.recorder.RecorderFactory;
 import moe.chikalar.bili.repo.RecordRoomRepository;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,11 +18,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.io.IOException;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @Controller
 @RequestMapping("record")
@@ -89,12 +85,6 @@ public class RecordRoomController {
     @GetMapping("stopRecord")
     public String stopRecord(Long id) {
         log.info("即将停止录制 {} ", id);
-        log.info("因为是手工停止，将状态设置为 禁用");
-        recordRoomRepository.findById(id)
-                .ifPresent(o -> {
-                    o.setStatus("2");
-                    recordRoomRepository.save(o);
-                });
         ProgressDto progressDto = recordHelper.get(id);
         if (progressDto != null) {
             progressDto.getStopStatus().set(true);

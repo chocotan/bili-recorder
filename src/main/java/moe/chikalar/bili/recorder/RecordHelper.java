@@ -11,7 +11,6 @@ import moe.chikalar.bili.entity.RecordRoom;
 import moe.chikalar.bili.flv.FlvTagFix;
 import moe.chikalar.bili.repo.RecordRoomRepository;
 import moe.chikalar.bili.utils.FileUtil;
-import moe.chikalar.bili.flv.FlvCheckerWithBufferEx;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -144,7 +143,11 @@ public class RecordHelper {
                     try {
                         File newFile = new File(pathname);
                         if (config.isFixTag()) {
-                            newFile = fix.fix(pathname, !config.isDebug());
+                            try {
+                                newFile = fix.fix(pathname, !config.isDebug());
+                            } catch (Exception e) {
+                                log.info("[{}] 修复时间戳失败", recordRoom.getRoomId());
+                            }
                         }
                         if (StringUtils.isNotBlank(config.getMoveFolder())) {
                             File moveParentFolder = new File(config.getMoveFolder());

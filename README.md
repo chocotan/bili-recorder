@@ -5,7 +5,7 @@
 这是一个大概开发好已经能用的录播工具
 
 ## 打包
-* 你需要Java 11和maven才能正常打包
+* 你需要Java 8和maven才能正常打包
 * 运行命令 `mvn clean package -Dmaven.test.skip`
 * 打包完成后会在`target`目录生成可执行jar
 

@@ -5,8 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;

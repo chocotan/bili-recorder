@@ -110,7 +110,11 @@
             <artifactId>concurrent-util</artifactId>
             <version>0.3.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.github.kokorin.jaffree</groupId>
+            <artifactId>jaffree</artifactId>
+            <version>2021-05-07</version>
+        </dependency>
     </dependencies>
 
     <build>
