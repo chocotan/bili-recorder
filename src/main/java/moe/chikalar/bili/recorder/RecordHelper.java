@@ -2,16 +2,16 @@ package moe.chikalar.bili.recorder;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.io.Files;
-import com.hybhub.util.concurrent.ConcurrentSetBlockingQueue;
 import javaslang.Tuple2;
 import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.bili.configuration.BiliRecorderProperties;
 import moe.chikalar.bili.dto.ProgressDto;
 import moe.chikalar.bili.dto.RecordConfig;
 import moe.chikalar.bili.entity.RecordRoom;
+import moe.chikalar.bili.flv.FlvTagFix;
 import moe.chikalar.bili.repo.RecordRoomRepository;
 import moe.chikalar.bili.utils.FileUtil;
-import moe.chikalar.bili.utils.FlvCheckerWithBufferEx;
+import moe.chikalar.bili.flv.FlvCheckerWithBufferEx;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +43,9 @@ public class RecordHelper {
     private RecorderFactory recorderFactory;
     @Autowired
     private LinkedList<Long> recordQueue;
+
+    @Autowired
+    private FlvTagFix fix;
 
     public void recordAndErrorHandle(RecordRoom recordRoom) {
         log.info("[{}] 接收到录制任务", recordRoom.getRoomId());
@@ -139,7 +142,10 @@ public class RecordHelper {
             if (new File(pathname).exists()) {
                 tagPool.submit(() -> {
                     try {
-                        File newFile = new FlvCheckerWithBufferEx().check(pathname, !config.isDebug());
+                        File newFile = new File(pathname);
+                        if (config.isFixTag()) {
+                            newFile = fix.fix(pathname, !config.isDebug());
+                        }
                         if (StringUtils.isNotBlank(config.getMoveFolder())) {
                             File moveParentFolder = new File(config.getMoveFolder());
                             if (!moveParentFolder.exists()) {

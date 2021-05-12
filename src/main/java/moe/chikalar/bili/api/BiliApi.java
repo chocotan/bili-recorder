@@ -18,7 +18,7 @@ public class BiliApi {
         additionalHeaders.put("referer", "https://live.bilibili.com/" + roomId);
         additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
         String res = HttpClientUtil.get("https://api.live.bilibili.com/room/v1/Room/room_init?id=" + roomId, additionalHeaders);
-        return JSON.parseObject(res, new TypeReference<>() {
+        return JSON.parseObject(res, new TypeReference<BiliResponseDto<BiliLiveStatus>>() {
         });
     }
 
@@ -28,7 +28,7 @@ public class BiliApi {
         additionalHeaders.put("referer", "https://live.bilibili.com/" + roomId);
         additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
         String res = HttpClientUtil.get(url + "?uid=" + uid, additionalHeaders);
-        BiliResponseDto<BiliMasterDto> resp = JSON.parseObject(res, new TypeReference<>() {
+        BiliResponseDto<BiliMasterDto> resp = JSON.parseObject(res, new TypeReference<BiliResponseDto<BiliMasterDto>>() {
         });
         return resp;
     }
@@ -39,7 +39,7 @@ public class BiliApi {
         additionalHeaders.put("referer", "https://live.bilibili.com/" + roomId);
         additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
         String res = HttpClientUtil.get(url + "?mid=" + uid, additionalHeaders);
-        BiliResponseDto<BiliRoomInfo> resp = JSON.parseObject(res, new TypeReference<>() {
+        BiliResponseDto<BiliRoomInfo> resp = JSON.parseObject(res, new TypeReference<BiliResponseDto<BiliRoomInfo>>() {
         });
         return resp;
     }

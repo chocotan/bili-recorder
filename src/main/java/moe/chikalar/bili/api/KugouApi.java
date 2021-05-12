@@ -20,7 +20,7 @@ public class KugouApi {
         long ts = System.currentTimeMillis();
         String res = HttpClientUtil.get(
                 String.format("https://service1.fanxing.kugou.com/roomcen/room/web/roomStatus?roomId=%s&version=1000&std_plat=7&std_dev=%%22%%22&std_imei=%%22%%22&times=%d&channel=0&sign\\=%%22%%22\\&_\\=%d", roomId, ts, ts), additionalHeaders);
-        return JSON.parseObject(res, new TypeReference<>() {
+        return JSON.parseObject(res, new TypeReference<KugouResponseDto<KugouLiveStatus>>() {
         });
     }
 
@@ -32,7 +32,7 @@ public class KugouApi {
         additionalHeaders.put("referer", "https://fanxing.kugou.com/" + roomId);
         additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
         String res = HttpClientUtil.get(url, additionalHeaders);
-        return JSON.parseObject(res, new TypeReference<>() {
+        return JSON.parseObject(res, new TypeReference<KugouResponseDto<KugouRoomInfo>>() {
         });
     }
 
@@ -49,16 +49,6 @@ public class KugouApi {
         additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
         String s = HttpClientUtil.get(formatUrl, additionalHeaders);
         return JsonPath.read(s, "$.data.lines[*].streamProfiles[*].httpsFlv[*]");
-    }
-
-
-    @Data
-    public static class BiliResponseDto<T> {
-        // 0：成功 1：参数错误
-        private Integer code;
-        private String msg;
-        private String message;
-        private T data;
     }
 
     @Data

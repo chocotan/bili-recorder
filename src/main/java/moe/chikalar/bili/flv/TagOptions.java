@@ -1,4 +1,4 @@
-package moe.chikalar.bili.utils;
+package moe.chikalar.bili.flv;
 
 public class TagOptions {
 

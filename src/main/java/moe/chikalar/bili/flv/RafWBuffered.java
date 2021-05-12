@@ -1,4 +1,4 @@
-package moe.chikalar.bili.utils;
+package moe.chikalar.bili.flv;
 
 import java.io.File;
 import java.io.FileNotFoundException;

@@ -80,7 +80,7 @@ public class LiveStatusCheckJob implements CommandLineRunner {
                         continue;
                     }
                     Optional<RecordRoom> opt = recordRoomRepository.findById(id);
-                    if (opt.isEmpty()) {
+                    if (!opt.isPresent()) {
                         return;
                     }
                     RecordRoom currentRecordRoom = opt.get();

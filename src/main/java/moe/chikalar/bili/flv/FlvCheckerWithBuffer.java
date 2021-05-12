@@ -1,4 +1,4 @@
-package moe.chikalar.bili.utils;
+package moe.chikalar.bili.flv;
 
 
 import lombok.extern.slf4j.Slf4j;
@@ -328,8 +328,8 @@ public class FlvCheckerWithBuffer {
         // 高于0xffffff部分
         int highCurrenttime = lastTimestampWrite[tagType] >> 24;
         raf.write(highCurrenttime);
-        log.debug(" ,读取timestamps 为：" + timestamp);
-        log.debug(" ,写入timestamps 为：" + lastTimestampWrite[tagType]);
+        log.info(" ,读取timestamps 为：" + timestamp);
+        log.info(" ,写入timestamps 为：" + lastTimestampWrite[tagType]);
         return true;
     }
 
