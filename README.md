@@ -5,7 +5,7 @@
 这是一个大概开发好已经能用的录播工具
 
 ## 打包
-* 你需要Java 8和maven才能正常打包
+* 你需要Java 11和maven才能正常打包
 * 运行命令 `mvn clean package -Dmaven.test.skip`
 * 打包完成后会在`target`目录生成可执行jar
 
@@ -39,5 +39,4 @@ docker run -d -p 30000:30000 -v $HOME/.bili:/bilirecord --env JAVA_OPT="-Drecord
 
 
 ## 感谢
-* Flv文件的工具类源码来自 [BilibiliLiveRecorder](https://github.com/nICEnnnnnnnLee/BilibiliLiveRecorder)
 * B站API的接口和字段定义来自 [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)
