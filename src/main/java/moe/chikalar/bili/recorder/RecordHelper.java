@@ -56,6 +56,7 @@ public class RecordHelper {
                 RecordConfig config = JSON.parseObject(data, RecordConfig.class);
                 try {
                     checkStatusAndRecord(recordRoom, recorder);
+                    recordRoom.setLastError("");
                 } catch (Exception e) {
                     // 异常时将状态设置为1, 记录异常日志
                     recordRoom.setLastError(ExceptionUtils.getStackTrace(e));
@@ -64,7 +65,6 @@ public class RecordHelper {
                     log.info("[{}] 录制结束", recordRoom.getRoomId());
                     remove(recordRoom.getId());
                     recordRoom.setStatus("1");
-                    recordRoom.setLastError("");
                     recordRoomRepository.save(recordRoom);
                     // 临时注释掉，结束后需要检查当前直播状态，如果仍然是正在直播，那么需要将其加入录制队列
                     // checkLiveStatusAfterRecord(recordRoom, recorder, config);

@@ -2,6 +2,7 @@ package moe.chikalar.bili.job;
 
 import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.bili.configuration.BiliRecorderProperties;
+import moe.chikalar.bili.dto.ProgressDto;
 import moe.chikalar.bili.entity.RecordRoom;
 import moe.chikalar.bili.recorder.RecordHelper;
 import moe.chikalar.bili.recorder.RecorderFactory;
@@ -89,7 +90,8 @@ public class LiveStatusCheckJob implements CommandLineRunner {
                     }
                     RecordRoom currentRecordRoom = opt.get();
                     // 只有没有在录播中的 才录制
-                    if (currentRecordRoom.getStatus().equals("1")) {
+                    ProgressDto progressDto = recordHelper.get(currentRecordRoom.getId());
+                    if (currentRecordRoom.getStatus().equals("1") || progressDto == null) {
                         recordHelper.recordAndErrorHandle(currentRecordRoom);
                         Thread.sleep(2000L);
                     }
