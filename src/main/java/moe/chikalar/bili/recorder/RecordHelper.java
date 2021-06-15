@@ -52,6 +52,9 @@ public class RecordHelper {
         Optional<Recorder> recorderOpt = recorderFactory.getRecorder(recordRoom.getType());
         if (recorderOpt.isPresent()) {
             Recorder recorder = recorderOpt.get();
+            // 将状态设置为ing
+            recordRoom.setStatus("3");
+            recordRoomRepository.save(recordRoom);
             Future<?> submit = tagPool.submit(() -> {
                 RecordConfig config = JSON.parseObject(data, RecordConfig.class);
                 try {
@@ -66,14 +69,9 @@ public class RecordHelper {
                     remove(recordRoom.getId());
                     recordRoom.setStatus("1");
                     recordRoomRepository.save(recordRoom);
-                    // 临时注释掉，结束后需要检查当前直播状态，如果仍然是正在直播，那么需要将其加入录制队列
-                    // checkLiveStatusAfterRecord(recordRoom, recorder, config);
                 }
             });
             put(recordRoom.getId(), new ProgressDto(false));
-            // 将状态设置为ing
-            recordRoom.setStatus("3");
-            recordRoomRepository.save(recordRoom);
         } else {
             log.info("未知类型 {}", recordRoom.getType());
         }

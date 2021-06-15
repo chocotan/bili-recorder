@@ -90,8 +90,7 @@ public class LiveStatusCheckJob implements CommandLineRunner {
                     }
                     RecordRoom currentRecordRoom = opt.get();
                     // 只有没有在录播中的 才录制
-                    ProgressDto progressDto = recordHelper.get(currentRecordRoom.getId());
-                    if (currentRecordRoom.getStatus().equals("1") || progressDto == null) {
+                    if (currentRecordRoom.getStatus().equals("1")) {
                         recordHelper.recordAndErrorHandle(currentRecordRoom);
                         Thread.sleep(2000L);
                     }
