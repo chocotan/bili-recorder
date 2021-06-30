@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Slf4j
 public class FlvTagFix {
     public File fix(String flvPath, Boolean delete) throws IOException {
-        String newFlvPath = flvPath.replaceAll("(.*)\\.flv", "$1-fixed.flv");
+        String newMp4Path = flvPath.replaceAll("(.*)\\.flv", "$1-fixed.mp4");
         final AtomicLong duration = new AtomicLong();
         FFmpegResult execute = FFmpeg.atPath()
                 .addInput(UrlInput.fromUrl(flvPath))
@@ -21,7 +21,7 @@ public class FlvTagFix {
                 .setOverwriteOutput(true)
                 .addArguments("-c:a", "copy")
                 .addArguments("-c:v", "copy")
-                .addOutput(UrlOutput.toUrl(newFlvPath))
+                .addOutput(UrlOutput.toUrl(newMp4Path))
                 .setProgressListener(new ProgressListener() {
                     @Override
                     public void onProgress(FFmpegProgress progress) {
@@ -34,6 +34,6 @@ public class FlvTagFix {
             new File(flvPath).delete();
         }
 //        new FlvCheckerWithBufferEx().check(flvPath, delete);
-        return new File(newFlvPath);
+        return new File(newMp4Path);
     }
 }

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -56,10 +57,16 @@ public class RecordHelper {
             recordRoom.setStatus("3");
             recordRoomRepository.save(recordRoom);
             Future<?> submit = tagPool.submit(() -> {
+                boolean needRetry = false;
                 RecordConfig config = JSON.parseObject(data, RecordConfig.class);
                 try {
                     checkStatusAndRecord(recordRoom, recorder);
                     recordRoom.setLastError("");
+                } catch (SocketTimeoutException e) {
+                    // 异常时将状态设置为1, 记录异常日志
+                    recordRoom.setLastError(ExceptionUtils.getStackTrace(e));
+                    log.info("[{}] 录制发生异常 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(e));
+                    needRetry = true;
                 } catch (Exception e) {
                     // 异常时将状态设置为1, 记录异常日志
                     recordRoom.setLastError(ExceptionUtils.getStackTrace(e));
@@ -70,6 +77,10 @@ public class RecordHelper {
                     recordRoom.setStatus("1");
                     recordRoomRepository.save(recordRoom);
                 }
+                if(needRetry){
+                    recordQueue.add(recordRoom.getId());
+                }
+
             });
             put(recordRoom.getId(), new ProgressDto(false));
         } else {

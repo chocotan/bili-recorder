@@ -75,6 +75,10 @@ public class LiveStatusCheckJob implements CommandLineRunner {
         startRecordPool();
     }
 
+    public void addToRecordPool(Long id){
+        recordQueue.add(id);
+    }
+
     public void startRecordPool() {
         recordPool.submit(() -> {
             for (; ; ) {
