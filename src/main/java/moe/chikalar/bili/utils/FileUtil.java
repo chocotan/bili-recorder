@@ -15,7 +15,7 @@ public class FileUtil {
                               ProgressDto progressDto) throws IOException {
         progressDto.setStartTime(System.currentTimeMillis());
         URLConnection connection = new URL(url).openConnection();
-        connection.setConnectTimeout(30000);
+        connection.setConnectTimeout(10000);
         connection.setReadTimeout(30000);
         connection.setRequestProperty("referer", "https://live.bilibili.com/");
         connection.setRequestProperty("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");

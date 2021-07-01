@@ -11,9 +11,12 @@ spring:
       ddl-auto: update
 
 record:
-  check-interval: 40
+  check-interval: 30
   work-path: ${user.home}/.bili
 
 logging:
   file:
     path: ${record.work-path}/log/
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
