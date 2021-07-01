@@ -23,7 +23,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 @Component
 @Slf4j
@@ -31,7 +30,7 @@ public class RecordHelper {
 
     private final Map<Long, ProgressDto> ctx = new HashMap<>();
 
-    private static final ExecutorService tagPool = Executors.newFixedThreadPool(100);
+    private static final ExecutorService recordPool = Executors.newFixedThreadPool(100);
 
     @Autowired
     private RecordRoomRepository recordRoomRepository;
@@ -51,41 +50,38 @@ public class RecordHelper {
         log.info("[{}] 接收到录制任务", recordRoom.getRoomId());
         String data = recordRoom.getData();
         Optional<Recorder> recorderOpt = recorderFactory.getRecorder(recordRoom.getType());
-        if (recorderOpt.isPresent()) {
-            Recorder recorder = recorderOpt.get();
-            // 将状态设置为ing
-            recordRoom.setStatus("3");
-            recordRoomRepository.save(recordRoom);
-            Future<?> submit = tagPool.submit(() -> {
-                boolean needRetry = false;
-                RecordConfig config = JSON.parseObject(data, RecordConfig.class);
-                try {
-                    checkStatusAndRecord(recordRoom, recorder);
-                    recordRoom.setLastError("");
-                } catch (SocketTimeoutException e) {
-                    // 异常时将状态设置为1, 记录异常日志
-                    recordRoom.setLastError(ExceptionUtils.getStackTrace(e));
-                    log.info("[{}] 录制发生异常 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(e));
-                    needRetry = true;
-                } catch (Exception e) {
-                    // 异常时将状态设置为1, 记录异常日志
-                    recordRoom.setLastError(ExceptionUtils.getStackTrace(e));
-                    log.info("[{}] 录制发生异常 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(e));
-                } finally {
-                    log.info("[{}] 录制结束", recordRoom.getRoomId());
-                    remove(recordRoom.getId());
-                    recordRoom.setStatus("1");
-                    recordRoomRepository.save(recordRoom);
-                }
-                if(needRetry){
-                    checkLiveStatusAfterRecord(recordRoom, recorder, config);
-                }
-
-            });
-            put(recordRoom.getId(), new ProgressDto(false));
-        } else {
-            log.info("未知类型 {}", recordRoom.getType());
-        }
+        if (!recorderOpt.isPresent())
+            return;
+        Recorder recorder = recorderOpt.get();
+        // 将状态设置为ing
+        recordRoom.setStatus("3");
+        recordRoomRepository.save(recordRoom);
+        recordPool.submit(() -> {
+            boolean needRetry = false;
+            RecordConfig config = JSON.parseObject(data, RecordConfig.class);
+            try {
+                checkStatusAndRecord(recordRoom, recorder);
+                recordRoom.setLastError("");
+            } catch (SocketTimeoutException e) {
+                // 超时时候的处理
+                recordRoom.setLastError(ExceptionUtils.getStackTrace(e));
+                log.info("[{}] 录制发生异常 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(e));
+                needRetry = true;
+            } catch (Exception e) {
+                // 其他异常记录异常日志
+                recordRoom.setLastError(ExceptionUtils.getStackTrace(e));
+                log.info("[{}] 录制发生异常 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(e));
+            } finally {
+                log.info("[{}] 录制结束", recordRoom.getRoomId());
+                remove(recordRoom.getId());
+                recordRoom.setStatus("1");
+                recordRoomRepository.save(recordRoom);
+            }
+            if (needRetry) {
+                checkLiveStatusAfterRecord(recordRoom, recorder, config);
+            }
+        });
+        put(recordRoom.getId(), new ProgressDto(false));
     }
 
     private void checkLiveStatusAfterRecord(RecordRoom recordRoom, Recorder recorder, RecordConfig config) {
@@ -147,7 +143,7 @@ public class RecordHelper {
             FileUtil.record(playUrl1, pathname, progressDto);
         } finally {
             if (new File(pathname).exists()) {
-                tagPool.submit(() -> {
+                recordPool.submit(() -> {
                     try {
                         File newFile = new File(pathname);
                         if (config.isFixTag()) {

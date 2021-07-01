@@ -14,26 +14,17 @@ import java.util.concurrent.atomic.AtomicLong;
 public class FlvTagFix {
     public File fix(String flvPath, Boolean delete) throws IOException {
         String newMp4Path = flvPath.replaceAll("(.*)\\.flv", "$1-fixed.mp4");
-        final AtomicLong duration = new AtomicLong();
-        FFmpegResult execute = FFmpeg.atPath()
+        FFmpeg.atPath()
                 .addInput(UrlInput.fromUrl(flvPath))
                 .setLogLevel(LogLevel.INFO)
                 .setOverwriteOutput(true)
                 .addArguments("-c:a", "copy")
                 .addArguments("-c:v", "copy")
                 .addOutput(UrlOutput.toUrl(newMp4Path))
-                .setProgressListener(new ProgressListener() {
-                    @Override
-                    public void onProgress(FFmpegProgress progress) {
-                        double percents = 100. * progress.getTimeMillis() / duration.get();
-                        log.info("正在处理文件 [{}] {}", percents, flvPath);
-                    }
-                })
                 .execute();
         if (delete) {
             new File(flvPath).delete();
         }
-//        new FlvCheckerWithBufferEx().check(flvPath, delete);
         return new File(newMp4Path);
     }
 }

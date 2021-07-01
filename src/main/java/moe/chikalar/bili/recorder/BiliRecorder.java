@@ -37,6 +37,7 @@ public class BiliRecorder implements Recorder {
 
     @Override
     public Tuple2<Boolean, String> check(RecordRoom recordRoom) throws IOException {
+        // TODO 如果b站接口异常（被限制），这里会nullpointer
         BiliApi.BiliRoomInfo roomInfo = BiliApi.getRoomInfo(recordRoom.getRoomId(),
                 recordRoom.getUid()).getData();
 
