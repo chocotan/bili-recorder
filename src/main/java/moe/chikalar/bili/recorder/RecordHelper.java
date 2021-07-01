@@ -78,7 +78,7 @@ public class RecordHelper {
                     recordRoomRepository.save(recordRoom);
                 }
                 if(needRetry){
-                    recordQueue.add(recordRoom.getId());
+                    checkLiveStatusAfterRecord(recordRoom, recorder, config);
                 }
 
             });
@@ -91,7 +91,6 @@ public class RecordHelper {
     private void checkLiveStatusAfterRecord(RecordRoom recordRoom, Recorder recorder, RecordConfig config) {
         Tuple2<Boolean, String> check = null;
         try {
-            Thread.sleep(config.getRetryInterval() * 1000);
             if (!recordQueue.contains(recordRoom.getId())) {
                 check = recorder.check(recordRoom);
                 if (check._1) {
@@ -108,7 +107,7 @@ public class RecordHelper {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.info("未知错误 {}", ExceptionUtils.getStackTrace(e));
         }
     }
 
