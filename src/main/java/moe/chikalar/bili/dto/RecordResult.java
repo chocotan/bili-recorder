@@ -1,9 +1,11 @@
 package moe.chikalar.bili.dto;
 
 import lombok.Getter;
+import lombok.Setter;
 
 
 @Getter
+@Setter
 public class RecordResult {
     private Boolean success;
     private String filePath;

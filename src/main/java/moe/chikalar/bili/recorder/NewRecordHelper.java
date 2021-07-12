@@ -1,7 +1,6 @@
 package moe.chikalar.bili.recorder;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.io.Files;
 import javaslang.Tuple2;
 import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.bili.configuration.BiliRecorderProperties;
@@ -11,18 +10,15 @@ import moe.chikalar.bili.dto.RecordResult;
 import moe.chikalar.bili.entity.RecordRoom;
 import moe.chikalar.bili.exception.LiveRecordException;
 import moe.chikalar.bili.exception.LiveStatusException;
-import moe.chikalar.bili.flv.FlvTagFix;
 import moe.chikalar.bili.interceptor.RecordInterceptor;
 import moe.chikalar.bili.repo.RecordRoomRepository;
 import moe.chikalar.bili.utils.FileUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -73,10 +69,10 @@ public class NewRecordHelper {
             }
             List<RecordInterceptor> list = interceptors.stream().sorted(Comparator.comparingInt(RecordInterceptor::getOrder)).collect(Collectors.toList());
             for (RecordInterceptor interceptor : list) {
-                recordResult = interceptor.afterRecord(recordRoom, recordResult);
+                recordResult = interceptor.afterRecord(recordRoom, recordResult, config);
             }
         });
-        put(recordRoom.getId(), new ProgressDto(false));
+
     }
 
 
@@ -84,7 +80,7 @@ public class NewRecordHelper {
         log.info("[{}] 准备检查房间是否在直播", recordRoom.getRoomId());
         Tuple2<Boolean, String> check = recorder.check(recordRoom);
         if (!check._1) {
-            throw new LiveStatusException("当前房间未在直播" + recordRoom.getId());
+            throw new LiveStatusException("[{}] 当前房间未在直播" + recordRoom.getRoomId());
         }
         String title = check._2;
         if (StringUtils.isBlank(title)) {
@@ -109,6 +105,7 @@ public class NewRecordHelper {
         String fileName = generateFileName(recordRoom);
         String path = folder + File.separator + fileName;
         log.info("[{}] 开始录制，保存文件至 {}", recordRoom.getRoomId(), path);
+        put(recordRoom.getId(), new ProgressDto(false));
         ProgressDto progressDto = ctx.get(recordRoom.getId());
         try {
             FileUtil.record(playUrl1, path, progressDto);

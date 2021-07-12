@@ -8,7 +8,7 @@ import moe.chikalar.bili.configuration.BiliRecorderProperties;
 import moe.chikalar.bili.dto.ProgressDto;
 import moe.chikalar.bili.dto.RecordConfig;
 import moe.chikalar.bili.entity.RecordRoom;
-import moe.chikalar.bili.recorder.RecordHelper;
+import moe.chikalar.bili.recorder.NewRecordHelper;
 import moe.chikalar.bili.recorder.Recorder;
 import moe.chikalar.bili.recorder.RecorderFactory;
 import moe.chikalar.bili.repo.RecordRoomRepository;
@@ -77,14 +77,13 @@ public class RecordRoomController {
         RecordConfig config = new RecordConfig();
         config.setRoomId(roomId);
         config.setUname(recordRoom.getUname());
-        config.setFixTag(properties.getFlvFixTs());
         recordRoom.setData(JSON.toJSONString(config, SerializerFeature.WriteMapNullValue));
         recordRoomRepository.save(recordRoom);
         return "redirect:/record";
     }
 
     @Autowired
-    private RecordHelper recordHelper;
+    private NewRecordHelper recordHelper;
 
 
     @GetMapping("stopRecord")

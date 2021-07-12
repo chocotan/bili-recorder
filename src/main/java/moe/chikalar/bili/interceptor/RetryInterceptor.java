@@ -1,25 +1,26 @@
 package moe.chikalar.bili.interceptor;
 
+import lombok.extern.slf4j.Slf4j;
+import moe.chikalar.bili.dto.RecordConfig;
 import moe.chikalar.bili.dto.RecordResult;
 import moe.chikalar.bili.entity.RecordRoom;
 import moe.chikalar.bili.exception.LiveRecordException;
-import moe.chikalar.bili.repo.RecordRoomRepository;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
-import java.util.Optional;
 
 @Component
+@Slf4j
 public class RetryInterceptor implements RecordInterceptor {
     @Autowired
     private LinkedList<Long> recordQueue;
-    @Autowired
-    private RecordRoomRepository recordRoomRepository;
 
-    public RecordResult afterRecord(RecordRoom recordRoom, RecordResult recordResult) {
+    public RecordResult afterRecord(RecordRoom recordRoom, RecordResult recordResult, RecordConfig config) {
         Exception exception = recordResult.getException();
         if (exception instanceof LiveRecordException) {
+            log.info("[{}] 录制发生网络异常，即将重试 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(exception));
             if (!recordQueue.contains(recordRoom.getId())) {
                 recordQueue.offer(recordRoom.getId());
             }
