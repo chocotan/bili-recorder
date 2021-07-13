@@ -41,20 +41,18 @@ public class NewRecordHelper {
 
     @Autowired
     private RecorderFactory recorderFactory;
-    @Autowired
-    private LinkedList<Long> recordQueue;
 
     @Autowired
     private List<RecordInterceptor> interceptors;
-
 
     public void recordAndErrorHandle(RecordRoom recordRoom) {
         log.info("[{}] 接收到录制任务", recordRoom.getRoomId());
         String data = recordRoom.getData();
         Optional<Recorder> recorderOpt = recorderFactory.getRecorder(recordRoom.getType());
-        if (!recorderOpt.isPresent())
+        if (recorderOpt.isEmpty())
             return;
         Recorder recorder = recorderOpt.get();
+        DanmuRecorder danmuRecorder = recorderFactory.getDanmuRecorder(recordRoom.getType());
         // 将状态设置为ing
         recordRoom.setStatus("3");
         recordRoomRepository.save(recordRoom);
@@ -62,7 +60,7 @@ public class NewRecordHelper {
             RecordConfig config = JSON.parseObject(data, RecordConfig.class);
             RecordResult recordResult = null;
             try {
-                String path = checkStatusAndRecord(recordRoom, recorder);
+                String path = checkStatusAndRecord(recordRoom, recorder, danmuRecorder);
                 recordResult = RecordResult.success(path);
             } catch (Exception e) {
                 recordResult = RecordResult.error(e);
@@ -76,7 +74,7 @@ public class NewRecordHelper {
     }
 
 
-    public String checkStatusAndRecord(RecordRoom recordRoom, Recorder recorder) throws IOException, InterruptedException {
+    public String checkStatusAndRecord(RecordRoom recordRoom, Recorder recorder, DanmuRecorder danmuRecorder) throws IOException, InterruptedException {
         log.info("[{}] 准备检查房间是否在直播", recordRoom.getRoomId());
         Tuple2<Boolean, String> check = recorder.check(recordRoom);
         if (!check._1) {
@@ -94,6 +92,7 @@ public class NewRecordHelper {
         if (playUrl == null || playUrl.size() == 0) {
             throw new LiveStatusException("该房间未在直播，无法获取播放地址 " + recordRoom.getId());
         }
+
         String playUrl1 = playUrl.get(0);
         String uname = recordRoom.getUname();
         String folder = defaultFolder + File.separator + uname;
@@ -105,12 +104,25 @@ public class NewRecordHelper {
         String fileName = generateFileName(recordRoom);
         String path = folder + File.separator + fileName;
         log.info("[{}] 开始录制，保存文件至 {}", recordRoom.getRoomId(), path);
+
+        if (config.getRecordDanmu()) {
+            String danmuFileName = path.replaceAll("(.*)\\.flv", "$1.txt");
+            danmuRecorder.startRecord(recordRoom.getRoomId(), danmuFileName);
+            log.info("[{}] 弹幕保存至 {}", recordRoom.getRoomId(), danmuFileName);
+        }
+
         put(recordRoom.getId(), new ProgressDto(false));
         ProgressDto progressDto = ctx.get(recordRoom.getId());
         try {
             FileUtil.record(playUrl1, path, progressDto);
         } catch (Exception e) {
             throw new LiveRecordException(e);
+        } finally {
+            try {
+                danmuRecorder.stop();
+            } catch (Exception e) {
+                // ignored`
+            }
         }
         return path;
     }
@@ -123,7 +135,6 @@ public class NewRecordHelper {
     public ProgressDto get(Long id) {
         return ctx.get(id);
     }
-
 
     public void remove(Long id) {
         ctx.remove(id);

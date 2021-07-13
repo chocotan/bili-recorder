@@ -58,4 +58,5 @@ public class BiliRecorder implements Recorder {
     public List<String> getPlayUrl(String roomId) throws IOException {
         return BiliApi.getPlayUrl(roomId);
     }
+
 }

@@ -53,5 +53,9 @@ public class HttpClientUtil {
         return response.body().string();
     }
 
+    public static OkHttpClient getClient(){
+        return client;
+    }
+
 
 }

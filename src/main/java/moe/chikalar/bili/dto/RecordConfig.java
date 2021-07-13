@@ -7,9 +7,13 @@ public class RecordConfig {
     private String roomId;
     private String uname;
     private String saveFolder;
+    private Long retryInterval = 20L;
+
+    private Boolean recordDanmu = true;
+
 
     private boolean convertToMp4 = false;
     private boolean convertToMp4Delete = false;
 
-    private Long retryInterval = 20L;
+
 }
