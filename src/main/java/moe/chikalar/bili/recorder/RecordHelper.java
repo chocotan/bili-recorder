@@ -14,6 +14,7 @@ import moe.chikalar.bili.interceptor.RecordListener;
 import moe.chikalar.bili.repo.RecordRoomRepository;
 import moe.chikalar.bili.utils.FileUtil;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -104,7 +105,11 @@ public class RecordHelper {
         // before record
         List<RecordListener> list = interceptors.stream().sorted(Comparator.comparingInt(RecordListener::getOrder)).collect(Collectors.toList());
         for (RecordListener listener : list) {
-            path = listener.beforeRecord(recordRoom,  config, path);
+            try {
+                path = listener.beforeRecord(recordRoom, config, path);
+            } catch (Exception e) {
+                log.error("[{}] listener异常 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(e));
+            }
         }
 
         log.info("[{}] 开始录制，保存文件至 {}", recordRoom.getRoomId(), path);

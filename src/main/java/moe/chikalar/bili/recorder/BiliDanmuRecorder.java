@@ -3,6 +3,7 @@ package moe.chikalar.bili.recorder;
 import com.alibaba.fastjson.JSONArray;
 import io.reactivex.subjects.PublishSubject;
 import javaslang.Tuple2;
+import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.bili.api.BiliApi;
 import moe.chikalar.bili.dmj.cmd.BaseCommand;
 import okhttp3.WebSocket;
@@ -18,6 +19,7 @@ import static moe.chikalar.bili.dmj.core.BiliConstants.heartByte;
 
 
 // currentTs^^(currentTs-startTs)^^uid^^uname^^content
+@Slf4j
 public class BiliDanmuRecorder implements DanmuRecorder {
     private AtomicBoolean stop = new AtomicBoolean(false);
     private long startTs;
