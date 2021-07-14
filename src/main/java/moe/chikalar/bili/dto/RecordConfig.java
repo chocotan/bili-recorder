@@ -13,7 +13,7 @@ public class RecordConfig {
 
 
     private boolean convertToMp4 = false;
-    private boolean convertToMp4Delete = false;
+    private boolean convertToMp4Delete = true;
 
 
 }

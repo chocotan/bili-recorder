@@ -35,7 +35,8 @@ public class Convert2Mp4 implements RecordListener {
                         .addOutput(UrlOutput.toUrl(newMp4Path))
                         .execute();
                 File newFile = new File(newMp4Path);
-                if (newFile.exists() && newFile.length() > 0) {
+                // 1m=1024*1024
+                if (newFile.exists() && newFile.length() > 1024 * 1024) {
                     recordResult.setFilePath(newMp4Path);
                     if(config.isConvertToMp4Delete()){
                         file.delete();
