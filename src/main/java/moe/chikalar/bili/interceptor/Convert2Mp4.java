@@ -15,7 +15,7 @@ import java.io.File;
 
 @Component
 @Slf4j
-public class Convert2Mp4 implements RecordInterceptor {
+public class Convert2Mp4 implements RecordListener {
 
     public RecordResult afterRecord(RecordRoom recordRoom, RecordResult recordResult, RecordConfig config) {
         if (!config.isConvertToMp4()) {

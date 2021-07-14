@@ -9,7 +9,7 @@ public class RecordConfig {
     private String saveFolder;
     private Long retryInterval = 20L;
 
-    private Boolean recordDanmu = true;
+    private Boolean danmuRecord = true;
 
 
     private boolean convertToMp4 = false;

@@ -21,7 +21,6 @@ public class BiliRecorder implements Recorder {
         BiliApi.BiliResponseDto<BiliApi.BiliLiveStatus> liveStatus = null;
         try {
             liveStatus = getLiveStatus(room.getRoomId());
-
             if (liveStatus.getCode() == 0) {
                 Long uid = liveStatus.getData().getUid();
                 BiliApi.BiliResponseDto<BiliApi.BiliMasterDto> masterInfo = BiliApi.getMasterInfo(room.getRoomId(), uid);

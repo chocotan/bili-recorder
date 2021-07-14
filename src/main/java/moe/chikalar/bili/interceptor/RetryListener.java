@@ -13,7 +13,7 @@ import java.util.LinkedList;
 
 @Component
 @Slf4j
-public class RetryInterceptor implements RecordInterceptor {
+public class RetryListener implements RecordListener {
     @Autowired
     private LinkedList<Long> recordQueue;
 

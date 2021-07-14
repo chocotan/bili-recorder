@@ -10,7 +10,7 @@ import moe.chikalar.bili.dto.RecordResult;
 import moe.chikalar.bili.entity.RecordRoom;
 import moe.chikalar.bili.exception.LiveRecordException;
 import moe.chikalar.bili.exception.LiveStatusException;
-import moe.chikalar.bili.interceptor.RecordInterceptor;
+import moe.chikalar.bili.interceptor.RecordListener;
 import moe.chikalar.bili.repo.RecordRoomRepository;
 import moe.chikalar.bili.utils.FileUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public class NewRecordHelper {
+public class RecordHelper {
 
     private final Map<Long, ProgressDto> ctx = new HashMap<>();
 
@@ -43,7 +43,7 @@ public class NewRecordHelper {
     private RecorderFactory recorderFactory;
 
     @Autowired
-    private List<RecordInterceptor> interceptors;
+    private List<RecordListener> interceptors;
 
     public void recordAndErrorHandle(RecordRoom recordRoom) {
         log.info("[{}] 接收到录制任务", recordRoom.getRoomId());
@@ -52,7 +52,6 @@ public class NewRecordHelper {
         if (recorderOpt.isEmpty())
             return;
         Recorder recorder = recorderOpt.get();
-        DanmuRecorder danmuRecorder = recorderFactory.getDanmuRecorder(recordRoom.getType());
         // 将状态设置为ing
         recordRoom.setStatus("3");
         recordRoomRepository.save(recordRoom);
@@ -60,21 +59,23 @@ public class NewRecordHelper {
             RecordConfig config = JSON.parseObject(data, RecordConfig.class);
             RecordResult recordResult = null;
             try {
-                String path = checkStatusAndRecord(recordRoom, recorder, danmuRecorder);
+                String path = checkStatusAndRecord(recordRoom, recorder);
                 recordResult = RecordResult.success(path);
             } catch (Exception e) {
                 recordResult = RecordResult.error(e);
+            } finally {
+                List<RecordListener> list = interceptors.stream().sorted(Comparator.comparingInt(RecordListener::getOrder)).collect(Collectors.toList());
+                for (RecordListener listener : list) {
+                    recordResult = listener.afterRecord(recordRoom, recordResult, config);
+                }
             }
-            List<RecordInterceptor> list = interceptors.stream().sorted(Comparator.comparingInt(RecordInterceptor::getOrder)).collect(Collectors.toList());
-            for (RecordInterceptor interceptor : list) {
-                recordResult = interceptor.afterRecord(recordRoom, recordResult, config);
-            }
+
         });
 
     }
 
 
-    public String checkStatusAndRecord(RecordRoom recordRoom, Recorder recorder, DanmuRecorder danmuRecorder) throws IOException, InterruptedException {
+    public String checkStatusAndRecord(RecordRoom recordRoom, Recorder recorder) throws IOException, InterruptedException {
         log.info("[{}] 准备检查房间是否在直播", recordRoom.getRoomId());
         Tuple2<Boolean, String> check = recorder.check(recordRoom);
         if (!check._1) {
@@ -105,24 +106,17 @@ public class NewRecordHelper {
         String path = folder + File.separator + fileName;
         log.info("[{}] 开始录制，保存文件至 {}", recordRoom.getRoomId(), path);
 
-        if (config.getRecordDanmu()) {
-            String danmuFileName = path.replaceAll("(.*)\\.flv", "$1.txt");
-            danmuRecorder.startRecord(recordRoom.getRoomId(), danmuFileName);
-            log.info("[{}] 弹幕保存至 {}", recordRoom.getRoomId(), danmuFileName);
+        // before record
+        List<RecordListener> list = interceptors.stream().sorted(Comparator.comparingInt(RecordListener::getOrder)).collect(Collectors.toList());
+        for (RecordListener listener : list) {
+            listener.beforeRecord(recordRoom,  config, path);
         }
-
         put(recordRoom.getId(), new ProgressDto(false));
         ProgressDto progressDto = ctx.get(recordRoom.getId());
         try {
             FileUtil.record(playUrl1, path, progressDto);
         } catch (Exception e) {
             throw new LiveRecordException(e);
-        } finally {
-            try {
-                danmuRecorder.stop();
-            } catch (Exception e) {
-                // ignored`
-            }
         }
         return path;
     }

@@ -1,10 +1,10 @@
 package moe.chikalar.bili.recorder;
 
 import com.alibaba.fastjson.JSONArray;
-import io.loli.dmj.cmd.BaseCommand;
 import io.reactivex.subjects.PublishSubject;
 import javaslang.Tuple2;
 import moe.chikalar.bili.api.BiliApi;
+import moe.chikalar.bili.dmj.cmd.BaseCommand;
 import okhttp3.WebSocket;
 import okio.ByteString;
 import org.apache.commons.io.FileUtils;
@@ -14,13 +14,12 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static io.loli.dmj.core.BiliConstants.heartByte;
+import static moe.chikalar.bili.dmj.core.BiliConstants.heartByte;
+
 
 // currentTs^^(currentTs-startTs)^^uid^^uname^^content
 public class BiliDanmuRecorder implements DanmuRecorder {
-    private String roomId;
     private AtomicBoolean stop = new AtomicBoolean(false);
-    private String fileName;
     private long startTs;
     private Thread heartBeatThread = null;
     private final String template = "%d^^%d^^%d^^%s^^%s\r\n";
@@ -30,8 +29,6 @@ public class BiliDanmuRecorder implements DanmuRecorder {
 
     @Override
     public void startRecord(String roomId, String fileName) {
-        this.roomId = roomId;
-        this.fileName = fileName;
         this.startTs = System.currentTimeMillis();
         this.ps = PublishSubject.create();
         this.ps.doOnNext(cmd -> {

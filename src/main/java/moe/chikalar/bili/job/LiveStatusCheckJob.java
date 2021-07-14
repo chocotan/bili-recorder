@@ -3,7 +3,7 @@ package moe.chikalar.bili.job;
 import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.bili.configuration.BiliRecorderProperties;
 import moe.chikalar.bili.entity.RecordRoom;
-import moe.chikalar.bili.recorder.NewRecordHelper;
+import moe.chikalar.bili.recorder.RecordHelper;
 import moe.chikalar.bili.repo.RecordRoomRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -26,7 +26,7 @@ public class LiveStatusCheckJob implements CommandLineRunner {
 
     private ScheduledExecutorService es = Executors.newScheduledThreadPool(2);
 
-    private final NewRecordHelper recordHelper;
+    private final RecordHelper recordHelper;
 
     private LinkedList<Long> recordQueue;
 
@@ -35,7 +35,7 @@ public class LiveStatusCheckJob implements CommandLineRunner {
 
     public LiveStatusCheckJob(BiliRecorderProperties properties,
                               RecordRoomRepository recordRoomRepository,
-                              NewRecordHelper recordHelper,
+                              RecordHelper recordHelper,
                               LinkedList<Long> recordQueue) {
         this.properties = properties;
         this.recordRoomRepository = recordRoomRepository;

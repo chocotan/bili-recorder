@@ -8,7 +8,7 @@ import moe.chikalar.bili.configuration.BiliRecorderProperties;
 import moe.chikalar.bili.dto.ProgressDto;
 import moe.chikalar.bili.dto.RecordConfig;
 import moe.chikalar.bili.entity.RecordRoom;
-import moe.chikalar.bili.recorder.NewRecordHelper;
+import moe.chikalar.bili.recorder.RecordHelper;
 import moe.chikalar.bili.recorder.Recorder;
 import moe.chikalar.bili.recorder.RecorderFactory;
 import moe.chikalar.bili.repo.RecordRoomRepository;
@@ -83,7 +83,7 @@ public class RecordRoomController {
     }
 
     @Autowired
-    private NewRecordHelper recordHelper;
+    private RecordHelper recordHelper;
 
 
     @GetMapping("stopRecord")

@@ -5,17 +5,16 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.jayway.jsonpath.JsonPath;
-import io.loli.dmj.cmd.BaseCommand;
-import io.loli.dmj.data.BiliDataUtil;
-import io.loli.dmj.data.BiliMsg;
-import io.loli.dmj.data.ByteUtils;
-import io.loli.dmj.data.InitRequestDto;
-import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
 import javaslang.Tuple;
 import javaslang.Tuple2;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import moe.chikalar.bili.dmj.cmd.BaseCommand;
+import moe.chikalar.bili.dmj.data.BiliDataUtil;
+import moe.chikalar.bili.dmj.data.BiliMsg;
+import moe.chikalar.bili.dmj.data.ByteUtils;
+import moe.chikalar.bili.dmj.data.InitRequestDto;
 import moe.chikalar.bili.utils.HttpClientUtil;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -31,7 +30,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 @Slf4j
 public class BiliApi {
@@ -115,6 +113,23 @@ public class BiliApi {
             log.error(ExceptionUtils.getStackTrace(e));
         }
         return null;
+    }
+
+
+    public String roomInit(String roomId) throws IOException {
+        Map<String, String> additionalHeaders = new HashMap<>();
+        additionalHeaders.put("referer", "https://live.bilibili.com/" + roomId);
+        additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
+        return HttpClientUtil.get("https://api.live.bilibili.com/room/v1/Room/room_init?id=" + roomId, additionalHeaders);
+    }
+
+    public String playUrl(String roomId) throws IOException {
+        String url = "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=%s&platform=web&qn=10000";
+        String formatUrl = String.format(url, roomId);
+        Map<String, String> additionalHeaders = new HashMap<>();
+        additionalHeaders.put("referer", "https://live.bilibili.com/" + roomId);
+        additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
+        return HttpClientUtil.get(formatUrl, additionalHeaders);
     }
 
     /**

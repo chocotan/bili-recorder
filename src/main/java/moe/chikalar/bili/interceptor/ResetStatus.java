@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class ResetStatus implements RecordInterceptor {
+public class ResetStatus implements RecordListener {
     private final RecordRoomRepository recordRoomRepository;
 
     public ResetStatus(RecordRoomRepository recordRoomRepository) {
