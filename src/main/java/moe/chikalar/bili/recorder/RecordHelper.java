@@ -47,15 +47,16 @@ public class RecordHelper {
 
     public void recordAndErrorHandle(RecordRoom recordRoom) {
         log.info("[{}] 接收到录制任务", recordRoom.getRoomId());
-        String data = recordRoom.getData();
         Optional<Recorder> recorderOpt = recorderFactory.getRecorder(recordRoom.getType());
         if (recorderOpt.isEmpty())
             return;
-        Recorder recorder = recorderOpt.get();
         // 将状态设置为ing
         recordRoom.setStatus("3");
         recordRoomRepository.save(recordRoom);
+
+        Recorder recorder = recorderOpt.get();
         recordPool.submit(() -> {
+            String data = recordRoom.getData();
             RecordConfig config = JSON.parseObject(data, RecordConfig.class);
             RecordResult recordResult = null;
             try {
@@ -97,20 +98,16 @@ public class RecordHelper {
         String playUrl1 = playUrl.get(0);
         String uname = recordRoom.getUname();
         String folder = defaultFolder + File.separator + uname;
-        folder = StringUtils.isNotBlank(config.getSaveFolder()) ? config.getSaveFolder() : folder;
-        File folderFile = new File(folder);
-        if (!folderFile.exists()) {
-            folderFile.mkdirs();
-        }
         String fileName = generateFileName(recordRoom);
         String path = folder + File.separator + fileName;
-        log.info("[{}] 开始录制，保存文件至 {}", recordRoom.getRoomId(), path);
 
         // before record
         List<RecordListener> list = interceptors.stream().sorted(Comparator.comparingInt(RecordListener::getOrder)).collect(Collectors.toList());
         for (RecordListener listener : list) {
-            listener.beforeRecord(recordRoom,  config, path);
+            path = listener.beforeRecord(recordRoom,  config, path);
         }
+
+        log.info("[{}] 开始录制，保存文件至 {}", recordRoom.getRoomId(), path);
         put(recordRoom.getId(), new ProgressDto(false));
         ProgressDto progressDto = ctx.get(recordRoom.getId());
         try {

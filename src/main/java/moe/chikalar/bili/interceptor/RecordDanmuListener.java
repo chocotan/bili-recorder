@@ -9,8 +9,6 @@ import moe.chikalar.bili.recorder.RecorderFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.concurrent.ThreadFactory;
-
 @Component
 @Slf4j
 public class RecordDanmuListener implements RecordListener {
@@ -19,7 +17,7 @@ public class RecordDanmuListener implements RecordListener {
 
     private ThreadLocal<DanmuRecorder> threadLocal = new ThreadLocal<>();
 
-    public void beforeRecord(RecordRoom recordRoom, RecordConfig config, String path) {
+    public String beforeRecord(RecordRoom recordRoom, RecordConfig config, String path) {
         if (config.getDanmuRecord()) {
             String danmuFileName = path.replaceAll("(.*)\\.flv", "$1.txt");
             DanmuRecorder danmuRecorder = factory.getDanmuRecorder(recordRoom.getType());
@@ -27,6 +25,7 @@ public class RecordDanmuListener implements RecordListener {
             danmuRecorder.startRecord(recordRoom.getRoomId(), danmuFileName);
             log.info("[{}] 弹幕保存至 {}", recordRoom.getRoomId(), danmuFileName);
         }
+        return path;
     }
 
     @Override
