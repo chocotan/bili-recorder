@@ -7,6 +7,7 @@ import moe.chikalar.bili.entity.RecordRoom;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -41,6 +42,15 @@ public class KugouRecorder implements Recorder {
 
     @Override
     public List<String> getPlayUrl(String roomId) throws IOException {
-        return KugouApi.getPlayUrl(roomId);
+        List<String> result = new ArrayList<>();
+        result.addAll(KugouApi.getPlayUrl(roomId));
+        if (result.size() == 0) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ignored) {
+            }
+            result.addAll(KugouApi.getPlayUrl2(roomId));
+        }
+        return result;
     }
 }

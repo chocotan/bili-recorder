@@ -50,6 +50,19 @@ public class KugouApi {
         return JsonPath.read(s, "$.data.lines[*].streamProfiles[*].httpsFlv[*]");
     }
 
+    public static List<String> getPlayUrl2(String roomId) throws IOException {
+        long ts = System.currentTimeMillis();
+        String url = "https://fx1.service.kugou.com/video/pc/live/pull/mutiline/streamaddr?std_rid=" +
+                roomId +
+                "&std_plat=7&streamType=1-5&ua=fx-flash&targetLiveTypes=4&version=1.0&_=" +
+                ts;
+        Map<String, String> additionalHeaders = new HashMap<>();
+        additionalHeaders.put("referer", "https://live.bilibili.com/" + roomId);
+        additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
+        String s = HttpClientUtil.get(url, additionalHeaders);
+        return JsonPath.read(s, "$.data.lines[*].streamProfiles[*].httpsFlv[*]");
+    }
+
     @Data
     public static class KugouLiveStatus {
         private String liveSessionId;
