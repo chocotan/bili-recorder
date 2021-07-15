@@ -68,7 +68,11 @@ public class RecordHelper {
             } finally {
                 List<RecordListener> list = interceptors.stream().sorted(Comparator.comparingInt(RecordListener::getOrder)).collect(Collectors.toList());
                 for (RecordListener listener : list) {
-                    recordResult = listener.afterRecord(recordRoom, recordResult, config);
+                    try {
+                        recordResult = listener.afterRecord(recordRoom, recordResult, config);
+                    } catch (Exception e) {
+                        log.error(ExceptionUtils.getStackTrace(e));
+                    }
                 }
             }
 

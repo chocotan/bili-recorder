@@ -2,6 +2,7 @@ package moe.chikalar.bili.utils;
 
 import moe.chikalar.bili.dto.ProgressDto;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +20,10 @@ public class FileUtil {
         connection.setRequestProperty("referer", "https://live.bilibili.com/");
         connection.setRequestProperty("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
 
+        // TODO 检查文件夹
+
+        File file = new File(filePath);
+        file.getParentFile().mkdirs();
 
         try (InputStream in = connection.getInputStream();
              FileOutputStream out = new FileOutputStream(filePath);) {

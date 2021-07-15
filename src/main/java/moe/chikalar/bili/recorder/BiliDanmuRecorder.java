@@ -1,6 +1,7 @@
 package moe.chikalar.bili.recorder;
 
 import com.alibaba.fastjson.JSONArray;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.PublishSubject;
 import javaslang.Tuple2;
 import lombok.extern.slf4j.Slf4j;
@@ -27,13 +28,14 @@ public class BiliDanmuRecorder implements DanmuRecorder {
     private final String template = "%d^^%d^^%d^^%s^^%s\r\n";
     private WebSocket webSocket;
     private PublishSubject<BaseCommand> ps;
+    private Disposable subscribe;
 
 
     @Override
     public void startRecord(String roomId, String fileName) {
         this.startTs = System.currentTimeMillis();
         this.ps = PublishSubject.create();
-        this.ps.doOnNext(cmd -> {
+        this.subscribe = this.ps.doOnNext(cmd -> {
             if ("DANMU_MSG".equals(cmd.getCmd())) {
                 JSONArray info = cmd.getInfo();
                 if (info != null) {
@@ -74,10 +76,11 @@ public class BiliDanmuRecorder implements DanmuRecorder {
         stop.set(true);
         heartBeatThread.interrupt();
         if (this.webSocket != null) {
-            this.webSocket.close(0, "");
+            this.webSocket.close(1000, "");
         }
         if (this.ps != null) {
             this.ps.onComplete();
+            this.subscribe.dispose();
         }
     }
 }

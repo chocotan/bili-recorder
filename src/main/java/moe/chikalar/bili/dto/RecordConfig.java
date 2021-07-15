@@ -12,8 +12,15 @@ public class RecordConfig {
     private Boolean danmuRecord = true;
 
 
-    private boolean convertToMp4 = false;
-    private boolean convertToMp4Delete = true;
+    private Boolean convertToMp4 = false;
+    private Boolean convertToMp4Delete = true;
+
+    // 分割文件要求convertToMp4为true
+    private Boolean splitFileByTime = false;
+    private Integer splitFileDurationInSeconds = 3600;
+    private Boolean splitFileBySize = false;
+    private Integer splitFileSizeInM = 4000;
+    private Boolean splitFileDeleteSource = false;
 
 
 }

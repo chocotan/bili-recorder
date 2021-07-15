@@ -42,7 +42,7 @@ public class RecordDanmuListener implements RecordListener {
             try {
                 danmuRecorder.stop();
             } catch (Exception e) {
-                // ignored
+                log.error(ExceptionUtils.getStackTrace(e));
             }
         }
         return recordResult;

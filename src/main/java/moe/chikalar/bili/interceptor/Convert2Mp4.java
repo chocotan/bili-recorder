@@ -18,7 +18,7 @@ import java.io.File;
 public class Convert2Mp4 implements RecordListener {
 
     public RecordResult afterRecord(RecordRoom recordRoom, RecordResult recordResult, RecordConfig config) {
-        if (!config.isConvertToMp4()) {
+        if (!config.getConvertToMp4()) {
             return recordResult;
         }
         String filePath = recordResult.getFilePath();
@@ -38,7 +38,7 @@ public class Convert2Mp4 implements RecordListener {
                 // 1m=1024*1024
                 if (newFile.exists() && newFile.length() > 10 * 1024 * 1024) {
                     recordResult.setFilePath(newMp4Path);
-                    if(config.isConvertToMp4Delete()){
+                    if(config.getConvertToMp4Delete()){
                         file.delete();
                     }
                 }
