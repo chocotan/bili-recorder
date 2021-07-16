@@ -123,6 +123,8 @@ public class RecordHelper {
             FileUtil.record(playUrl1, path, progressDto);
         } catch (Exception e) {
             throw new LiveRecordException(e);
+        } finally {
+            remove(recordRoom.getId());
         }
         return path;
     }

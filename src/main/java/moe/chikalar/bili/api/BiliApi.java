@@ -171,7 +171,6 @@ public class BiliApi {
 
             @Override
             public void onClosing(@NotNull WebSocket webSocket, int code, @NotNull String reason) {
-                System.out.println();
             }
 
             @Override
