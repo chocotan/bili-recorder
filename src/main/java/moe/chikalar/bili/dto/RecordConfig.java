@@ -19,7 +19,7 @@ public class RecordConfig {
     private Boolean splitFileByTime = false;
     private Integer splitFileDurationInSeconds = 3600;
     private Boolean splitFileBySize = false;
-    private Integer splitFileSizeInM = 4000;
+    private Long splitFileSizeInM = 4000L;
     private Boolean splitFileDeleteSource = false;
 
 
