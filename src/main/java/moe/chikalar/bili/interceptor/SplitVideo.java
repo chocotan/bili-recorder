@@ -78,15 +78,23 @@ public class SplitVideo implements RecordListener {
                 float duration = durationOpt.get().getDuration();
                 float bitRate = durationOpt.get().getBitRate();
 
-                for (int starTime = 0, idx = 1; starTime <= duration; idx++) {
+                int offsetInSeconds = 5;
+//                remainingTime - currentTime <
+                for (int starTime = 0, idx = 1; starTime <= duration - offsetInSeconds; idx++) {
                     String newFileName = filePath.replaceAll("(.*).mp4", "$1-" + idx + ".mp4");
                     // 从第2次开始，开始时间往前挪5s，结束时间往后挪5s
+                    float splitLength = idx == 1 ? splitByteLength : (splitByteLength + (bitRate * offsetInSeconds / 8));
+                    int recordStartTime = idx == 1 ? starTime : (starTime - offsetInSeconds);
+                    // 如果现在的开始时间和结束时间相差不大——20s以内，结束时间直接设置为最大
+//                    if (duration - starTime == 20) {
+//                        splitLength = 3600000000L;
+//                    }
                     FFmpeg.atPath()
                             .setLogLevel(LogLevel.INFO)
                             .setOverwriteOutput(true)
-                            .addArguments("-ss", "" + (idx == 1 ? starTime : (starTime - 5)))
+                            .addArguments("-ss", "" + recordStartTime)
                             .addArguments("-i", filePath)
-                            .addArguments("-fs", "" + (idx == 1 ? splitByteLength : (splitByteLength + (bitRate * 5 / 8))))
+                            .addArguments("-fs", "" + splitLength)
                             .addArguments("-c", "copy")
                             .addOutput(UrlOutput.toUrl(newFileName))
                             .execute();
@@ -96,8 +104,8 @@ public class SplitVideo implements RecordListener {
                     if (videoInfo.isEmpty()) {
                         return recordResult;
                     }
-                    long durationInSeconds = videoInfo.get().getDuration().longValue();
-                    starTime = (int) ((idx == 1 ? starTime : (starTime - 5)) + durationInSeconds);
+                    long currentFileSeconds = videoInfo.get().getDuration().longValue();
+                    starTime = (int) (starTime + currentFileSeconds - offsetInSeconds);
                 }
 
             }
