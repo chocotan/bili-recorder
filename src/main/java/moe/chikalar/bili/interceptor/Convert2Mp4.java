@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.bili.dto.RecordConfig;
 import moe.chikalar.bili.dto.RecordResult;
 import moe.chikalar.bili.entity.RecordRoom;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +22,11 @@ public class Convert2Mp4 implements RecordListener {
         if (!config.getConvertToMp4()) {
             return recordResult;
         }
+
         String filePath = recordResult.getFilePath();
+        if(StringUtils.isBlank(filePath)){
+            return recordResult;
+        }
         File file = new File(filePath);
         if (file.exists()) {
             try {
