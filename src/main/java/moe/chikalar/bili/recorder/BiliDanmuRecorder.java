@@ -10,9 +10,11 @@ import moe.chikalar.bili.dmj.cmd.BaseCommand;
 import okhttp3.WebSocket;
 import okio.ByteString;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.tomcat.util.buf.HexUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -36,19 +38,22 @@ public class BiliDanmuRecorder implements DanmuRecorder {
         this.startTs = System.currentTimeMillis();
         this.ps = PublishSubject.create();
         this.subscribe = this.ps.doOnNext(cmd -> {
-            if ("DANMU_MSG".equals(cmd.getCmd())) {
-                JSONArray info = cmd.getInfo();
-                if (info != null) {
-                    String msg = (String) info.get(1);
-                    JSONArray userInfo = (JSONArray) info.get(2);
-                    Long uid = Long.valueOf("" + userInfo.get(0));
-                    String uname = (String) userInfo.get(1);
-                    String text = String.format(template, System.currentTimeMillis(),
-                            (System.currentTimeMillis() - startTs), uid, uname, msg);
-                    File file = new File(fileName);
-                    file.createNewFile();
-                    FileUtils.write(file, text, StandardCharsets.UTF_8, true);
+            try {
+                if ("DANMU_MSG".equals(cmd.getCmd())) {
+                    JSONArray info = cmd.getInfo();
+                    if (info != null) {
+                        String msg = (String) info.get(1);
+                        JSONArray userInfo = (JSONArray) info.get(2);
+                        Long uid = Long.valueOf("" + userInfo.get(0));
+                        String uname = (String) userInfo.get(1);
+                        String text = String.format(template, System.currentTimeMillis(),
+                                (System.currentTimeMillis() - startTs), uid, uname, msg);
+                        File file = new File(fileName);
+                        FileUtils.write(file, text, StandardCharsets.UTF_8, true);
+                    }
                 }
+            } catch (Exception e) {
+                log.info(ExceptionUtils.getStackTrace(e));
             }
         }).subscribe();
         // 获取弹幕websocket地址
@@ -59,7 +64,7 @@ public class BiliDanmuRecorder implements DanmuRecorder {
         this.webSocket.send(ByteString.of(res._2));
         // 心跳
         heartBeatThread = new Thread(() -> {
-            for (int i = 0; i < 10000000 && stop.get(); i++) {
+            for (int i = 0; i < 10000000 && !stop.get(); i++) {
                 webSocket.send(ByteString.of(HexUtils.fromHexString(heartByte)));
                 try {
                     Thread.sleep(30000);
@@ -83,4 +88,5 @@ public class BiliDanmuRecorder implements DanmuRecorder {
             this.subscribe.dispose();
         }
     }
+
 }

@@ -82,7 +82,7 @@ public class LiveStatusCheckJob implements CommandLineRunner {
                 try {
                     Long id = recordQueue.poll();
                     if (id == null) {
-                        Thread.sleep(1000);
+                        Thread.sleep(4000);
                         continue;
                     }
                     Optional<RecordRoom> opt = recordRoomRepository.findById(id);

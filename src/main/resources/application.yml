@@ -11,7 +11,7 @@ spring:
       ddl-auto: update
 
 record:
-  check-interval: 30
+  check-interval: 40
   work-path: ${user.home}/.bili
 
 logging:
