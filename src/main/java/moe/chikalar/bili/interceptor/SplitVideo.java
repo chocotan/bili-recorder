@@ -10,6 +10,7 @@ import com.github.kokorin.jaffree.ffprobe.Stream;
 import moe.chikalar.bili.dto.RecordConfig;
 import moe.chikalar.bili.dto.RecordResult;
 import moe.chikalar.bili.entity.RecordRoom;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
@@ -30,6 +31,9 @@ public class SplitVideo implements RecordListener {
         if (config.getConvertToMp4()) {
             String filePath = recordResult.getFilePath();
 
+            if (StringUtils.isBlank(filePath)) {
+                return recordResult;
+            }
             File file = new File(filePath);
             if (file.exists()) {
                 if (config.getSplitFileByTime()) {

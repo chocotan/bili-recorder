@@ -41,7 +41,6 @@ public class BiliDataUtil {
                     return resultStr;
                 } else {
                     resultStr = HexUtils.toHexString(bs);
-                    LOGGER.debug("！！！！！！！！！！未知数据(1)v:" + data_ver + "t:" + data_type + ":" + resultStr);
                 }
             } else if (data_ver == 1) {
                 if (data_type == 3) {
