@@ -25,8 +25,6 @@
     <table class="table">
         <thead>
         <tr>
-            <th scope="col">#</th>
-            <th scope="col">房间号</th>
             <th scope="col">用户名</th>
             <th scope="col">状态</th>
             <th scope="col">文件大小</th>
@@ -34,9 +32,7 @@
         </tr>
         <tbody>
         <tr th:each="r:${list}">
-            <th scope="row" th:text="${r.id}"></th>
-            <td th:text="${r.roomId}"></td>
-            <td th:text="${r.uname}"></td>
+            <td th:text="${r.uname+'-'+r.type}"></td>
             <td><span th:remove="tag" th:text="${r.statusText}"></span></td>
             <td th:if="${r.dataSize!=null}" th:text="${r.dataSize}+'M'"></td>
             <td th:if="${r.dataSize==null}"></td>
