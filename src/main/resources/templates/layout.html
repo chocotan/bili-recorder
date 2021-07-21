@@ -1,0 +1,29 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE" th:inline="text" th:text="'bili-recorder'">
+    </title>
+    <title>bili-recorder</title>
+    <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/5.0.2/js/bootstrap.min.js}"></script>
+    <link th:href="@{/webjars/bootstrap/5.0.2/css/bootstrap.min.css}" rel="stylesheet"/>
+    <link th:href="@{/webjars/font-awesome/5.15.2/css/all.css}" rel="stylesheet"/>
+    <script th:src="@{/webjars/font-awesome/5.15.2/js/all.js}"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <th:block layout:fragment="additional" th:remove="tag"></th:block>
+    <style>
+
+        .container{
+            margin-top: 1em;
+        }
+
+    </style>
+</head>
+<body>
+<nav th:replace="header :: header"></nav>
+<div class="container-fluid">
+    <main layout:fragment="content"></main>
+    <nav th:insert="footer :: footer"></nav>
+</div>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout">
+<head>
+    <title>文件</title>
+    <style>
+        body{
+        }
+    </style>
+</head>
+
+<body>
+<div class="container" layout:fragment="content">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/}">首页</a></li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a th:href="@{/file/list}">文件</a></li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="${'当前路径：'+currentPath}"></li>
+        </ol>
+    </nav>
+    <a th:href="@{/file/list(path=${return})}" th:if="${!isRoot}">返回上层</a></li>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">文件名</th>
+            <th scope="col">大小</th>
+            <th scope="col">修改时间</th>
+        </tr>
+        <tbody>
+        <tr th:each="r:${fileList}">
+            <td>
+                <a th:if="${!r.file}" th:text="${r.name}" th:href="@{/file/list(path=${r.path})}"></a>
+                <a th:if="${r.file}" th:text="${r.name}" th:href="@{/file/download(path=${r.path})}"></a>
+            </td>
+            <td ><span th:if="${r.file}" th:text="${r.fileLength}"></span></td>
+            <td th:text="${#dates.format(r.lastModified,'yyyy-MM-dd HH:mm')}" ></td>
+        </tr>
+        </tbody>
+    </table>
+
+</div>
+</body>
+</html>

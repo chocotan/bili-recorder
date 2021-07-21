@@ -1,0 +1,71 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout">
+<head>
+    <title>录制历史</title>
+<style>
+    body{
+    }
+</style>
+</head>
+
+<body>
+<div class="container" layout:fragment="content">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/}">首页</a></li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a th:href="@{/recordHistory/list}">历史</a></li>
+            <li class="breadcrumb-item active" aria-current="page">列表</li>
+        </ol>
+    </nav>
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">开始时间</th>
+            <th scope="col">结束时间</th>
+            <th scope="col">房间号</th>
+            <th scope="col">用户名</th>
+            <th scope="col">类型</th>
+            <th scope="col">状态</th>
+            <th scope="col">文件大小</th>
+        </tr>
+        <tbody>
+        <tr th:each="r:${page}">
+            <th scope="row" th:text="${r.id}"></th>
+            <td th:text="${r.startTime}"></td>
+            <td th:text="${r.endTime}"></td>
+            <td th:text="${r.recordRoom.roomId}"></td>
+            <td th:text="${r.recordRoom.uname}"></td>
+            <td th:text="${r.recordRoom.type}"></td>
+            <td th:text="${r.status}"></td>
+            <td><span th:if="${r.fileSize!=null&&r.fileSize>0}"  th:text="${r.fileSize/1024/1024}+'M'"></span></td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="table-pagination" th:if="${param.name==null}">
+        <nav class="pagination-div">
+            <ul class="pagination">
+                <li class="page-item" th:if="${page.hasPrevious()}">
+                    <a class="page-link" th:href="@{/recordHistory/list(page=${page.number-1},size=${page.size})}">上一页</a>
+                </li>
+                <th:block th:each="i: ${#numbers.sequence(0, page.totalPages - 1)}"
+                          th:if="${(i<4||i>page.totalPages-4||(i<page.number+4&&i>page.number-4))&&page.totalPages>0}">
+                    <li class="page-item active" th:if="${page.number == i}">
+                        <a class="page-link" href="#">[[${i}+1]]</a></li>
+                    <li class="page-item" th:unless="${page.number == i}">
+                        <a class="page-link" th:href="@{/recordHistory/list(page=${i},size=${page.size})}">[[${i}+1]]</a>
+                    </li>
+                </th:block>
+                <li class="page-item" th:if="${page.hasNext()}">
+                    <a class="page-link" th:href="@{/recordHistory/list(page=${page.number+1},size=${page.size})}">下一页</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+</div>
+</body>
+</html>

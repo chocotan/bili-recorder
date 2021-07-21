@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.bili.configuration.BiliRecorderProperties;
 import moe.chikalar.bili.dto.ProgressDto;
 import moe.chikalar.bili.dto.RecordConfig;
+import moe.chikalar.bili.dto.RecordContext;
 import moe.chikalar.bili.dto.RecordResult;
 import moe.chikalar.bili.entity.RecordRoom;
 import moe.chikalar.bili.exception.LiveRecordException;
@@ -60,16 +61,19 @@ public class RecordHelper {
             String data = recordRoom.getData();
             RecordConfig config = JSON.parseObject(data, RecordConfig.class);
             RecordResult recordResult = null;
+            RecordContext context = new RecordContext();
+            context.setRecordRoom(recordRoom);
             try {
-                String path = checkStatusAndRecord(recordRoom, recorder);
-                recordResult = RecordResult.success(path);
+                Tuple2<Boolean, String> check = checkStatus(recordRoom, recorder);
+                doRecord(recordRoom, recorder, check, context);
+                recordResult = RecordResult.success(context);
             } catch (Exception e) {
-                recordResult = RecordResult.error(e);
+                recordResult = RecordResult.error(e, context);
             } finally {
                 List<RecordListener> list = interceptors.stream().sorted(Comparator.comparingInt(RecordListener::getOrder)).collect(Collectors.toList());
                 for (RecordListener listener : list) {
                     try {
-                        recordResult = listener.afterRecord(recordRoom, recordResult, config);
+                        recordResult = listener.afterRecord(recordResult, config);
                     } catch (Exception e) {
                         log.error(ExceptionUtils.getStackTrace(e));
                     }
@@ -80,13 +84,18 @@ public class RecordHelper {
 
     }
 
-
-    public String checkStatusAndRecord(RecordRoom recordRoom, Recorder recorder) throws IOException, InterruptedException {
+    public Tuple2<Boolean, String> checkStatus(RecordRoom recordRoom, Recorder recorder) throws IOException {
         log.info("[{}] 准备检查房间是否在直播", recordRoom.getRoomId());
         Tuple2<Boolean, String> check = recorder.check(recordRoom);
         if (!check._1) {
             throw new LiveStatusException("[{}] 当前房间未在直播" + recordRoom.getRoomId());
         }
+        return check;
+    }
+
+    public RecordContext doRecord(RecordRoom recordRoom, Recorder recorder,
+                                  Tuple2<Boolean, String> check,
+                                  RecordContext context) throws IOException, InterruptedException {
         String title = check._2;
         if (StringUtils.isBlank(title)) {
             title = "直播";
@@ -108,9 +117,12 @@ public class RecordHelper {
 
         // before record
         List<RecordListener> list = interceptors.stream().sorted(Comparator.comparingInt(RecordListener::getOrder)).collect(Collectors.toList());
+        context.setRecordRoom(recordRoom);
+        context.setPath(path);
+
         for (RecordListener listener : list) {
             try {
-                path = listener.beforeRecord(recordRoom, config, path);
+                listener.beforeRecord(context, config);
             } catch (Exception e) {
                 log.error("[{}] listener异常 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(e));
             }
@@ -126,7 +138,7 @@ public class RecordHelper {
         } finally {
             remove(recordRoom.getId());
         }
-        return path;
+        return context;
     }
 
     private String generateFileName(RecordRoom recordRoom) {

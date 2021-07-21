@@ -1,18 +1,26 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout">
 <head>
-    <title>bili-recorder</title>
-    <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
-    <script th:src="@{/webjars/bootstrap/4.0.0/js/bootstrap.min.js}"></script>
-    <link th:href="@{/webjars/bootstrap/4.0.0/css/bootstrap.min.css}" rel="stylesheet"/>
-</head>
+    <title>首页</title>
 <style>
     body{
-        margin-top: 20px;
     }
 </style>
+</head>
+
 <body>
-<div class="container">
+<div class="container" layout:fragment="content">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/}">首页</a></li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a th:href="@{/record}">主播</a></li>
+            <li class="breadcrumb-item active" aria-current="page">
+               列表</li>
+        </ol>
+    </nav>
     <a th:href="@{/record/add}" class="btn btn-info">添加房间</a>
     <table class="table">
         <thead>

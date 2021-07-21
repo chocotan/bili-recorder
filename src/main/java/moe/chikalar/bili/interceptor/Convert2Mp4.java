@@ -18,12 +18,12 @@ import java.io.File;
 @Slf4j
 public class Convert2Mp4 implements RecordListener {
 
-    public RecordResult afterRecord(RecordRoom recordRoom, RecordResult recordResult, RecordConfig config) {
+    public RecordResult afterRecord(RecordResult recordResult, RecordConfig config) {
         if (!config.getConvertToMp4()) {
             return recordResult;
         }
 
-        String filePath = recordResult.getFilePath();
+        String filePath = recordResult.getContext().getPath();
         if(StringUtils.isBlank(filePath)){
             return recordResult;
         }
@@ -42,13 +42,15 @@ public class Convert2Mp4 implements RecordListener {
                 File newFile = new File(newMp4Path);
                 // 1m=1024*1024
                 if (newFile.exists() && newFile.length() > 10 * 1024 * 1024) {
-                    recordResult.setFilePath(newMp4Path);
+                    recordResult.getContext().setPath(newMp4Path);
                     if(config.getConvertToMp4Delete()){
                         file.delete();
                     }
                 }
             } catch (Exception e) {
-                log.info("[{}] ffmpeg执行报错 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(e));
+                log.info("[{}] ffmpeg执行报错 {}",
+                        recordResult.getContext().getRecordRoom().getRoomId(),
+                        ExceptionUtils.getStackTrace(e));
             }
         }
         return recordResult;

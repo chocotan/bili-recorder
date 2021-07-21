@@ -1,54 +1,64 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout">
 <head>
-    <title>编辑配置</title>
-    <script th:src="@{/webjars/jquery/3.3.1/jquery.min.js}"></script>
-    <script th:src="@{/webjars/bootstrap/4.0.0/js/bootstrap.min.js}"></script>
-    <link th:href="@{/webjars/bootstrap/4.0.0/css/bootstrap.min.css}" rel="stylesheet"/>
+    <title>编辑房间</title>
+    <style>
+        body {
+        }
+    </style>
 </head>
+
 <body>
-<div class="container">
+<div class="container" layout:fragment="content">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/}">首页</a></li>
+            <li class="breadcrumb-item" aria-current="page">
+                <a th:href="@{/record}">主播</a></li>
+            <li class="breadcrumb-item active" aria-current="page">添加房间</li>
+        </ol>
+    </nav>
+
     <form th:action="@{/record/edit}" method="post">
-        <div class="from-row">
-            <input type="hidden" name="id" th:value="${obj.id}"/>
-            <div class="form-group row">
-                <label for="roomId" class="col-sm-2 col-form-label">房间号</label>
-                <div class="col-sm-10">
-                    <input type="text" name="roomId" disabled class="form-control" id="roomId" th:value="${obj.roomId}">
-                </div>
-            </div>
-            <div class="form-group row">
-                <label for="roomId" class="col-sm-2 col-form-label">配置</label>
-                <div class="col-sm-10">
-                    <label for="config"></label><textarea rows="10" class="form-control" id="config" name="data" th:text="${obj.formattedData}"></textarea>
-                </div>
-            </div>
-            <div class="form-group row">
-                <label for="type" class="col-sm-2 col-form-label">类型</label>
-                <div class="col-sm-10">
-                    <label>
-                        <select id="type" disabled name="type" class="form-control" th:value="${obj.type}">
-                            <option value="bili">bili</option>
-                            <option value="kugou">kugou</option>
-                        </select>
-                    </label>
-                </div>
-            </div>
-            <div class="form-group row">
-                <label for="status" class="col-sm-2 col-form-label">状态</label>
-                <div class="col-sm-10">
-                    <label>
-                        <select id="status" name="status" class="form-control" th:field="${obj.status}">
-                            <option value="1">启用</option>
-                            <option value="2">禁用</option>
-                        </select>
-                    </label>
-                </div>
-            </div>
-            <div class="form-group row">
-                <button type="submit" class="form-control btn btn-primary mb-2">保存</button>
+        <input type="hidden" name="id" th:value="${obj.id}"/>
+        <div class="mb-3">
+            <label for="roomId" class="col-sm-2 form-label">房间号</label>
+            <div class="col-sm-10">
+                <input type="text" name="roomId" disabled class="form-control" id="roomId" th:value="${obj.roomId}">
             </div>
         </div>
+        <div class="mb-3">
+            <label for="roomId" class="col-sm-2 form-label">配置</label>
+            <div class="col-sm-10">
+                <label for="config"></label><textarea rows="10" class="form-control" id="config" name="data"
+                                                      th:text="${obj.formattedData}"></textarea>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="type" class="col-sm-2 form-label">类型</label>
+            <div class="col-sm-10">
+                <label>
+                    <select id="type" disabled name="type" class="form-control" th:value="${obj.type}">
+                        <option value="bili">bili</option>
+                        <option value="kugou">kugou</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="status" class="col-sm-2 form-label">状态</label>
+            <div class="col-sm-10">
+                <label>
+                    <select id="status" name="status" class="form-control" th:field="${obj.status}">
+                        <option value="1">启用</option>
+                        <option value="2">禁用</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary">保存</button>
     </form>
 </div>
 </body>

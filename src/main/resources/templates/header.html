@@ -1,0 +1,26 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<nav class="navbar bg-light navbar-light navbar-expand  flex-md-row shadow bd-navbar" th:fragment="header">
+    <div class="container-fluid">
+        <a class="navbar-brand" th:href="@{/}">bili-recorder</a>
+        <div class="collapse navbar-collapse" id="navbarNav">
+
+            <ul class="navbar-nav px-2">
+                <li class="nav-item text-nowrap">
+                    <a class="nav-link" th:href="@{/}">首页</a>
+                </li>
+                <li class="nav-item text-nowrap">
+                    <a class="nav-link" th:href="@{/recordHistory/list}">录制历史</a>
+                </li>
+                <li class="nav-item text-nowrap">
+                    <a class="nav-link" th:href="@{/file/list}">文件</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+</body>
+</html>

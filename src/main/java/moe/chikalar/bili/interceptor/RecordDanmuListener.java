@@ -2,6 +2,7 @@ package moe.chikalar.bili.interceptor;
 
 import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.bili.dto.RecordConfig;
+import moe.chikalar.bili.dto.RecordContext;
 import moe.chikalar.bili.dto.RecordResult;
 import moe.chikalar.bili.entity.RecordRoom;
 import moe.chikalar.bili.recorder.DanmuRecorder;
@@ -18,7 +19,9 @@ public class RecordDanmuListener implements RecordListener {
 
     private ThreadLocal<DanmuRecorder> threadLocal = new ThreadLocal<>();
 
-    public String beforeRecord(RecordRoom recordRoom, RecordConfig config, String path) {
+    public void beforeRecord(RecordContext context, RecordConfig config) {
+        RecordRoom recordRoom = context.getRecordRoom();
+        String path = context.getPath();
         if (config.getDanmuRecord()) {
             String danmuFileName = path.replaceAll("(.*)\\.flv", "$1.txt");
             DanmuRecorder danmuRecorder = factory.getDanmuRecorder(recordRoom.getType());
@@ -32,11 +35,10 @@ public class RecordDanmuListener implements RecordListener {
             }
         }
 
-        return path;
     }
 
     @Override
-    public RecordResult afterRecord(RecordRoom recordRoom, RecordResult recordResult, RecordConfig config) {
+    public RecordResult afterRecord(RecordResult recordResult, RecordConfig config) {
         DanmuRecorder danmuRecorder = threadLocal.get();
         if (danmuRecorder != null) {
             try {

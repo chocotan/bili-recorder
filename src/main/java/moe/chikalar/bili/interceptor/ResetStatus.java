@@ -18,7 +18,8 @@ public class ResetStatus implements RecordListener {
         this.recordRoomRepository = recordRoomRepository;
     }
 
-    public RecordResult afterRecord(RecordRoom recordRoom, RecordResult recordResult, RecordConfig config) {
+    public RecordResult afterRecord(RecordResult recordResult, RecordConfig config) {
+        RecordRoom recordRoom = recordResult.getContext().getRecordRoom();
         Exception exception = recordResult.getException();
         if (exception instanceof LiveStatusException) {
             log.info("[{}] 当前房间未在直播", recordRoom.getRoomId());

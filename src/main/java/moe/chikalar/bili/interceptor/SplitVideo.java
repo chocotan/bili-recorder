@@ -27,9 +27,10 @@ public class SplitVideo implements RecordListener {
     // https://video.stackexchange.com/questions/18284/cutting-with-ffmpeg-results-in-few-seconds-of-black-screen-how-do-i-fix-this
 
     @Override
-    public RecordResult afterRecord(RecordRoom recordRoom, RecordResult recordResult, RecordConfig config) {
+    public RecordResult afterRecord(RecordResult recordResult, RecordConfig config) {
+
         if (config.getConvertToMp4()) {
-            String filePath = recordResult.getFilePath();
+            String filePath = recordResult.getContext().getPath();
 
             if (StringUtils.isBlank(filePath)) {
                 return recordResult;
