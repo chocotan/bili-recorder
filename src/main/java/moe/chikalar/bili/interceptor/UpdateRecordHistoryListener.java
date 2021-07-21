@@ -20,7 +20,7 @@ public class UpdateRecordHistoryListener implements RecordListener {
     public RecordResult afterRecord(RecordResult recordResult, RecordConfig config) {
         // create record history
         RecordHistory history = recordResult.getContext().getAttribute("history");
-        if (history != null) {
+        if (history != null && recordResult.getException() == null) {
             Date endTime = new Date();
             history.setEndTime(endTime);
             history.setFileLength(endTime.getTime() - history.getStartTime().getTime());
@@ -32,6 +32,11 @@ public class UpdateRecordHistoryListener implements RecordListener {
                 // ignored
             }
             recordHistoryRepository.save(history);
+        } else {
+            if (history != null) {
+                history.setStatus("error");
+                recordHistoryRepository.save(history);
+            }
         }
         return recordResult;
     }

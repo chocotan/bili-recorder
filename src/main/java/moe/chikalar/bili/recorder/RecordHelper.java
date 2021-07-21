@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -79,7 +80,6 @@ public class RecordHelper {
                     }
                 }
             }
-
         });
 
     }
@@ -134,6 +134,9 @@ public class RecordHelper {
         try {
             FileUtil.record(playUrl1, path, progressDto);
         } catch (Exception e) {
+            if (e instanceof FileNotFoundException) {
+                throw new LiveStatusException("该房间未在直播 " + recordRoom.getId(), e);
+            }
             throw new LiveRecordException(e);
         } finally {
             remove(recordRoom.getId());

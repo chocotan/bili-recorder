@@ -1,6 +1,6 @@
 server:
   port: 30000
-  forward-headers-strategy: framework
+  forward-headers-strategy: native
 
 
 spring:
