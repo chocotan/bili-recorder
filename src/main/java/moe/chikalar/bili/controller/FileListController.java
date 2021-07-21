@@ -77,6 +77,9 @@ public class FileListController {
         File file = new File(currentPath);
         if (file.exists() && file.isDirectory()) {
             File[] files = file.listFiles();
+            if(!path.endsWith("/")){
+                path = path + "/";
+            }
             String finalPath = path;
             List<FileDto> fileList = Arrays.stream(files)
                     .map(d -> {
