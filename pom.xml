@@ -12,6 +12,7 @@
     <artifactId>bili-recorder</artifactId>
     <version>0.0.3-SNAPSHOT</version>
     <name>bili-recorder</name>
+    <url>https://github.com/chocotan/bili-recorder</url>
     <description>B站直播录制工具</description>
     <properties>
         <java.version>11</java.version>
@@ -142,7 +143,21 @@
             <artifactId>spring-native</artifactId>
             <version>${spring-native.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.13.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java-util</artifactId>
+            <version>3.13.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>30.1.1-jre</version>
+        </dependency>
 
     </dependencies>
 
@@ -233,6 +248,23 @@
 
 
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/*.html</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <excludes>
+                    <exclude>**/*.html</exclude>
+                </excludes>
+            </resource>
+        </resources>
+
     </build>
     <distributionManagement>
         <repository>
@@ -284,7 +316,7 @@
                         <artifactId>native-maven-plugin</artifactId>
                         <version>${native-buildtools.version}</version>
                         <configuration>
-                            <mainClass>moe.chikalar.bili.BiliRecorderApplication</mainClass>
+                            <mainClass>moe.chikalar.recorder.RecorderApplication</mainClass>
                         </configuration>
                         <executions>
                             <execution>

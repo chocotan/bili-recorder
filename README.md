@@ -39,5 +39,6 @@ docker run -d -p 30000:30000 -v $HOME/.bili:/bilirecord --env JAVA_OPT="-Drecord
 
 ## 其他
 * B站API的接口和字段定义来自 [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)
-* `src/main/java/struct` 文件夹下的代码为 [javastruct](https://code.google.com/archive/p/javastruct/) 项目的部分源码，本项目未对该部分代码做任何改动，该项目是2007年左右托管在google code上，已经有十多年未维护了，其许可证为GPL V3。本项目使用其部分代码用于解析b站的弹幕。
+* `src/main/java/struct` 文件夹下的代码为 [javastruct](https://code.google.com/archive/p/javastruct/) 项目的部分源码，本项目未对该部分代码做任何改动，该项目是2007年左右托管在google code上，已经有十多年未维护了，其许可证为LGPL V3。本项目使用其部分代码用于解析b站的弹幕。
 * 本项目的`BiliDataUtil` 类修改自 [Bilibili_Danmuji](https://github.com/BanqiJane/Bilibili_Danmuji) ，其许可证为GPL V3。
+* 酷狗直播的弹幕解析方式来自于 [real-url](https://github.com/wbt5/real-url)

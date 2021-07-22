@@ -20,7 +20,8 @@
             <li class="breadcrumb-item active" aria-current="page" th:text="${'当前路径：'+currentPath}"></li>
         </ol>
     </nav>
-    <a th:href="@{/file/list(path=${return})}" th:if="${!isRoot}">返回上层</a></li>
+    <a th:href="@{/file/list(path=${return})}" th:if="${!isRoot && !isFirstLevel}">返回上层</a></li>
+    <a th:href="@{/file/list}" th:if="${isFirstLevel}">返回上层</a></li>
     <table class="table">
         <thead>
         <tr>
@@ -31,8 +32,9 @@
         <tbody>
         <tr th:each="r:${fileList}">
             <td>
-                <a th:if="${!r.file}" th:text="${r.name}" th:href="@{/file/list(path=${r.path})}"></a>
-                <a th:if="${r.file}" th:text="${r.name}" th:href="@{/file/download(path=${r.path})}"></a>
+                <a th:if="${!r.file&&r.id==null}" th:text="${r.name}" th:href="@{/file/list(path=${r.path})}"></a>
+                <a th:if="${r.file&&r.id==null}" th:text="${r.name}" th:href="@{/file/download(path=${r.path})}"></a>
+                <a th:if="${r.id!=null}" th:text="${r.name}" th:href="@{/file/list(id=${r.id})}"></a>
             </td>
             <td ><span th:if="${r.file}" th:text="${r.fileLength}"></span></td>
             <td th:text="${#dates.format(r.lastModified,'yyyy-MM-dd HH:mm')}" ></td>
