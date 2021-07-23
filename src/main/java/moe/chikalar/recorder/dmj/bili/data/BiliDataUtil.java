@@ -8,6 +8,8 @@ import moe.chikalar.recorder.struct.StructException;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author BanqiJane
@@ -19,10 +21,10 @@ public class BiliDataUtil {
      * 处理父数据包 单线程引用写法
      */
     @SuppressWarnings("unused")
-    public static String handle_Message(ByteBuffer message) throws Exception {
+    public static List<String> handle_Message(ByteBuffer message) throws Exception {
         byte[] bytes = ByteUtils.decodeValue(message);
         byte[] bs = null;
-        String resultStr = null;
+        List<String> resultStr = new ArrayList<>();
         BiliMsg biliMsg = null;
         if (bytes.length > 0) {
             biliMsg = decode(bytes);
@@ -34,10 +36,9 @@ public class BiliDataUtil {
             bs = ByteUtils.subBytes(bytes, head_len, data_len - head_len);
             if (data_ver == 2) {
                 if (data_type == 5) {
-                    resultStr = BiliDataUtil.handle_zlibMessage(ByteUtils.BytesTozlibInflate(bs));
-                    return resultStr;
+                    resultStr.addAll(BiliDataUtil.handle_zlibMessage(ByteUtils.BytesTozlibInflate(bs)));
                 } else {
-                    resultStr = HexUtils.toHexString(bs);
+                    resultStr.add(HexUtils.toHexString(bs));
                 }
             } else if (data_ver == 1) {
                 if (data_type == 3) {
@@ -45,30 +46,29 @@ public class BiliDataUtil {
                     // TODO 房间人气
                 } else if (data_type == 8) {
                     // 返回{code 0} 验证头消息成功后返回
-                    resultStr = new String(bs, StandardCharsets.UTF_8);
-                    return resultStr;
+                    resultStr.add(new String(bs, StandardCharsets.UTF_8));
+
                 } else {
-                    resultStr = HexUtils.toHexString(bs);
+                    resultStr.add(HexUtils.toHexString(bs));
                     LOGGER.debug("！！！！！！！！！！未知数据(1)v:" + data_ver + "t:" + data_type + ":" + resultStr);
                 }
             } else if (data_ver == 0) {
-                resultStr = new String(bs, StandardCharsets.UTF_8);
-                return resultStr;
+                resultStr.add(new String(bs, StandardCharsets.UTF_8));
             } else {
-                resultStr = HexUtils.toHexString(bs);
+                resultStr.add(HexUtils.toHexString(bs));
                 LOGGER.debug("！！！！！！！！！！未知数据(1):" + resultStr);
             }
         }
-        return null;
+        return resultStr;
     }
 
     /**
      * 处理解压后子数据包
      */
     @SuppressWarnings("unused")
-    public static String handle_zlibMessage(byte[] bytes) throws Exception {
+    public static List<String> handle_zlibMessage(byte[] bytes) throws Exception {
         int offect = 0;
-        String resultStr = null;
+        List<String> resultStr = new ArrayList<>();
         int maxLen = bytes.length;
         byte[] byte_c = null;
         BiliMsg biliMsg = null;
@@ -89,10 +89,10 @@ public class BiliDataUtil {
             bs = ByteUtils.subBytes(byte_c, head_len, data_len - head_len);
             if (data_ver == 2) {
                 if (data_type == 5) {
-                    resultStr = ByteUtils.BytesTozlibInflateString(bs);
+                    resultStr.add(ByteUtils.BytesTozlibInflateString(bs));
                     LOGGER.debug("其他未处理消息(2):" + resultStr);
                 } else {
-                    resultStr = HexUtils.toHexString(bs);
+                    resultStr.add(HexUtils.toHexString(bs));
                     LOGGER.debug("！！！！！！！！！！未知数据(2)v:" + data_ver + "t:" + data_type + ":" + resultStr);
                 }
             } else if (data_ver == 1) {
@@ -100,21 +100,20 @@ public class BiliDataUtil {
                     // TODO 人气
                     long byteslong = ByteUtils.byteslong(bs);
                 } else {
-                    resultStr = HexUtils.toHexString(bs);
+                    resultStr.add(HexUtils.toHexString(bs));
                     // TODO 这是个啥玩意儿
                     LOGGER.debug("！！！！！！！！！！未知数据(2)v:" + data_ver + "t:" + data_type + ":" + resultStr);
                 }
             } else if (data_ver == 0) {
-                resultStr = new String(bs, "utf-8");
-                return resultStr;
+                resultStr.add(new String(bs, "utf-8"));
             } else {
-                resultStr = HexUtils.toHexString(bs);
+                resultStr.add(HexUtils.toHexString(bs));
                 LOGGER.debug("！！！！！！！！！！未知数据(2):" + resultStr);
             }
             bs = null;
             offect += data_len;
         }
-        return null;
+        return resultStr;
     }
 
     /**

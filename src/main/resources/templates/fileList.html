@@ -32,9 +32,10 @@
         <tbody>
         <tr th:each="r:${fileList}">
             <td>
-                <a th:if="${!r.file&&r.id==null}" th:text="${r.name}" th:href="@{/file/list(path=${r.path})}"></a>
-                <a th:if="${r.file&&r.id==null}" th:text="${r.name}" th:href="@{/file/download(path=${r.path})}"></a>
-                <a th:if="${r.id!=null}" th:text="${r.name}" th:href="@{/file/list(id=${r.id})}"></a>
+                <a th:if="${!r.file&&r.id==null}" th:text="${r.name}" th:href="@{/file/list(path=${r.path},id=${r.id})}"></a>
+                <a th:if="${r.file&&r.id==null}" th:text="${r.name}" th:href="@{/file/download(path=${r.path},id=${r.id})}"></a>
+                <a th:if="${!r.file&&r.id!=null}" th:text="${r.name}" th:href="@{/file/list(id=${r.id},path=${r.path})}"></a>
+                <a th:if="${r.file&&r.id!=null}" th:text="${r.name}" th:href="@{/file/download(id=${r.id},path=${r.path})}"></a>
             </td>
             <td ><span th:if="${r.file}" th:text="${r.fileLength}"></span></td>
             <td th:text="${#dates.format(r.lastModified,'yyyy-MM-dd HH:mm')}" ></td>

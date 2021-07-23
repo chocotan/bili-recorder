@@ -140,7 +140,7 @@ public class BiliApi {
      * @param roomId 房间号?
      * @return 连接的ws对象
      */
-    public static WebSocket initWebsocket(String url, String roomId, Subject<BaseCommand> queue) {
+    public static WebSocket initWebsocket(String url, String roomId, Subject<byte[]> queue) {
         Request request = new Request.Builder()
                 .url(url)
                 .header("Origin", "https://live.bilibili.com")
@@ -180,16 +180,7 @@ public class BiliApi {
 
             @Override
             public void onMessage(@NotNull WebSocket webSocket, @NotNull ByteString bytes) {
-                try {
-                    String msg = BiliDataUtil.handle_Message(bytes.asByteBuffer());
-                    BaseCommand cmd = JSON.parseObject(msg, BaseCommand.class);
-                    if (cmd != null && cmd.getCmd() != null) {
-                        cmd.setRoomId(roomId);
-                        queue.onNext(cmd);
-                    }
-                } catch (Exception e) {
-                    log.error(ExceptionUtils.getStackTrace(e));
-                }
+                queue.onNext(bytes.toByteArray());
             }
 
 

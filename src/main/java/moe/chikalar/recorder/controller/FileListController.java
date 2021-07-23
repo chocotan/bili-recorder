@@ -38,13 +38,29 @@ public class FileListController {
 
 
     @RequestMapping("download")
-    public ResponseEntity<Resource> download(String path, HttpServletResponse response) {
-        String workPath = recorderProperties.getWorkPath();
-        if (workPath.endsWith("/")) {
+    public ResponseEntity<Resource> download(String path,
+                                             Long id,
+                                             HttpServletResponse response) {
+        Optional<RecordRoom> r = recordRoomRepository.findById(id);
+        if (!r.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        RecordConfig recordConfig = JSON.parseObject(r.get().getData(), RecordConfig.class);
+        String folder = recorderProperties.getWorkPath();
+        if (folder.endsWith(File.separator)) {
+            folder = folder.substring(0, folder.length() - 1);
+        }
+        if (StringUtils.isNotBlank(recordConfig.getSaveFolder())) {
+            folder = recordConfig.getSaveFolder();
+        } else {
+            folder = folder + File.separator + r.get().getUname();
+        }
+        String workPath = folder;
+        if (workPath.endsWith(File.separator)) {
             workPath = workPath.substring(0, workPath.length() - 1);
         }
-        if (!path.startsWith("/")) {
-            path = "/" + path;
+        if (!path.startsWith(File.separator)) {
+            path = File.separator + path;
         }
         String currentPath = workPath + path;
         File file = new File(currentPath);
@@ -52,9 +68,6 @@ public class FileListController {
             return ResponseEntity.notFound().build();
         }
         FileSystemResource resource = new FileSystemResource(file);
-//        MediaType mediaType = MediaTypeFactory
-//                .getMediaType(resource)
-//                .orElse(MediaType.APPLICATION_OCTET_STREAM);
         MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(mediaType);
@@ -67,33 +80,37 @@ public class FileListController {
     }
 
     @RequestMapping("list")
-    public String list(Model model, @RequestParam(defaultValue = "/") String path,
+    public String list(Model model, String path,
                        Long id) {
+        if (StringUtils.isBlank(path)) {
+            path = File.separator;
+        }
         String workPath = recorderProperties.getWorkPath();
-        if (workPath.endsWith("/")) {
+        if (workPath.endsWith(File.separator)) {
             workPath = workPath.substring(0, workPath.length() - 1);
         }
 
-        if (!path.startsWith("/")) {
-            path = "/" + path;
+        if (!path.startsWith(File.separator)) {
+            path = File.separator + path;
         }
         // 当前的绝对路径
         String currentPath = workPath + path;
         model.addAttribute("isFirstLevel", false);
-        if (id != null) {
+        if (id != null && File.separator.equals(path)) {
             Optional<RecordRoom> r = recordRoomRepository.findById(id);
             if (r.isPresent()) {
                 RecordConfig recordConfig = JSON.parseObject(r.get().getData(), RecordConfig.class);
                 currentPath = StringUtils.isNotBlank(recordConfig.getSaveFolder()) ?
-                        recordConfig.getSaveFolder() : (recorderProperties.getWorkPath() + "/" + r.get().getUname());
+                        recordConfig.getSaveFolder() : (recorderProperties.getWorkPath() + File.separator
+                        + r.get().getUname());
                 model.addAttribute("isFirstLevel", true);
             }
         }
         model.addAttribute("currentPath", currentPath);
-        model.addAttribute("isRoot", path.equals("/"));
+        model.addAttribute("isRoot", path.equals(File.separator));
 
-        if (!path.equals("/"))
-            model.addAttribute("return", path.substring(0, path.lastIndexOf("/")));
+        if (!path.equals(File.separator))
+            model.addAttribute("return", path.substring(0, path.lastIndexOf(File.separator)));
         else {
             // 当path=/的时候，查询所有主播的目录，而不是根目录
             if (id == null) {
@@ -123,8 +140,10 @@ public class FileListController {
         File file = new File(currentPath);
         if (file.exists() && file.isDirectory()) {
             File[] files = file.listFiles();
-            if (!path.endsWith("/")) {
-                path = path + "/";
+            Arrays.sort(files, (a, b) -> (int) (b.lastModified() / 1000 -
+                    a.lastModified() / 1000));
+            if (!path.endsWith(File.separator)) {
+                path = path + File.separator;
             }
             String finalPath = path;
             List<FileDto> fileList = Arrays.stream(files)
@@ -135,7 +154,7 @@ public class FileListController {
                         f.setLastModified(new Date(d.lastModified()));
                         f.setFileLength(d.isFile() ? humanReadableByteCountBin(d.length()) : "0M");
                         f.setPath(finalPath + d.getName());
-
+                        f.setId(id);
                         return f;
                     }).collect(Collectors.toList());
 

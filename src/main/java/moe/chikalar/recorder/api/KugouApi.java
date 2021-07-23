@@ -4,17 +4,28 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.jayway.jsonpath.JsonPath;
 import io.reactivex.subjects.PublishSubject;
+import javaslang.Tuple;
 import javaslang.Tuple2;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.recorder.dmj.bili.cmd.BaseCommand;
+import moe.chikalar.recorder.dmj.bili.data.BiliDataUtil;
 import moe.chikalar.recorder.utils.HttpClientUtil;
+import okhttp3.Request;
+import okhttp3.Response;
 import okhttp3.WebSocket;
+import okhttp3.WebSocketListener;
+import okio.ByteString;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class KugouApi {
 
     public static KugouResponseDto<KugouLiveStatus> getLiveStatus(String roomId) throws IOException {
@@ -67,12 +78,76 @@ public class KugouApi {
         return JsonPath.read(s, "$.data.lines[*].streamProfiles[*].httpsFlv[*]");
     }
 
-    public static Tuple2<String, byte[]> beforeInitWs(String roomId) {
-        return null;
+    public static Tuple2<String, String> beforeInitWs(String roomId) {
+        try {
+            String url = "https://fx2.service.kugou.com/socket_scheduler/pc/v2/address.jsonp?rid=" +
+                    roomId
+                    + "&_v=7.0.0&_p=0&pv=20191231&at=102&cid=105";
+            String str = HttpClientUtil.get(url);
+            List<String> wsUrls = JsonPath.read(str, "$.data.addrs[*].host");
+            String token = JsonPath.read(str, "$.data.soctoken");
+            return Tuple.of(wsUrls.get(0), token);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    public static WebSocket initWebsocket(String s, String roomId, PublishSubject<BaseCommand> ps) {
-        return null;
+    public static WebSocket initWebsocket(String url, String roomId,
+                                          PublishSubject<BaseCommand> queue) {
+        Request request = new Request.Builder()
+                .url(url)
+                .header("Origin", "https://fanxing.kugou.com/")
+                .header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36")
+                .build();
+        return HttpClientUtil.getClient().newWebSocket(request, new WebSocketListener() {
+            @Override
+            public void onClosed(@NotNull WebSocket webSocket, int code, @NotNull String reason) {
+                log.warn("Connection closed, roomid={}, reason={}", roomId, reason);
+            }
+
+
+            @Override
+            public void onFailure(@NotNull WebSocket webSocket, @NotNull Throwable t, @Nullable Response response) {
+                super.onFailure(webSocket, t, response);
+                try {
+                    log.warn("Failed to connect, roomid={}, response={}, reason={} ",
+                            roomId, ExceptionUtils.getStackTrace(t), response.body().string());
+                } catch (Exception e) {
+                    // ignored
+                }
+            }
+
+            @Override
+            public void onOpen(@NotNull WebSocket webSocket, @NotNull Response response) {
+                super.onOpen(webSocket, response);
+            }
+
+            @Override
+            public void onClosing(@NotNull WebSocket webSocket, int code, @NotNull String reason) {
+            }
+
+            @Override
+            public void onMessage(@NotNull WebSocket webSocket, @NotNull String text) {
+                System.out.println();
+            }
+
+            @Override
+            public void onMessage(@NotNull WebSocket webSocket, @NotNull ByteString bytes) {
+                try {
+                    byte[] message = bytes.toByteArray();
+                    int t = message.length;
+                    int n = 9;
+                    if (t == 0) {
+                        return;
+                    }
+
+                } catch (Exception e) {
+                    log.error(ExceptionUtils.getStackTrace(e));
+                }
+            }
+
+
+        });
     }
 
     @Data
