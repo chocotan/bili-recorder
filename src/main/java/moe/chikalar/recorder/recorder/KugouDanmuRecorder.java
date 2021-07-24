@@ -1,5 +1,6 @@
 package moe.chikalar.recorder.recorder;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.subjects.PublishSubject;
@@ -8,6 +9,7 @@ import javaslang.Tuple2;
 import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.recorder.api.KugouApi;
 import moe.chikalar.recorder.dmj.bili.cmd.BaseCommand;
+import moe.chikalar.recorder.dmj.bili.data.BiliMsg;
 import moe.chikalar.recorder.dmj.bili.data.ByteUtils;
 import moe.chikalar.recorder.dmj.kugou.JythonStruct;
 import moe.chikalar.recorder.dmj.kugou.KugouDanmu;
@@ -16,6 +18,7 @@ import okhttp3.WebSocket;
 import okio.ByteString;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.tomcat.util.buf.HexUtils;
 import org.python.core.PyInteger;
@@ -27,10 +30,9 @@ import org.python.modules.struct;
 
 import javax.script.ScriptException;
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -49,6 +51,8 @@ public class KugouDanmuRecorder extends AbstractDanmuRecorder {
     private List<KugouDanmuField> fields = Arrays.asList(
             MAGIC, VERSION, TYPE, HEADER, CMD, PAYLOAD, ATTR, CRC, SKIP
     );
+
+    private static String template = "%d^^%d^^%s^^%s";
 
     @Override
     public PublishSubject<byte[]> getSubject() {
@@ -110,13 +114,57 @@ public class KugouDanmuRecorder extends AbstractDanmuRecorder {
         if (t == 0) {
             return new ArrayList<>();
         }
-        v(message, TYPE);
-        return new ArrayList<>();
+        if (v(message, TYPE) == 0) {
+            return new ArrayList<>();
+        }
+        int r = v(message, HEADER);
+        int cmd = v(message, CMD);
+        int a = g(n, r);
+        if (t < a) {
+            return new ArrayList<>();
+        }
+        byte[] o = ArrayUtils.subarray(message, a, message.length);
+        if (cmd == 0) {
+            return new ArrayList<>();
+        }
+        List<String> msgs = new ArrayList<>();
+        if (cmd == 201 || cmd == 501) {
+            // CMD
+            // 201:LoginResponse,欢迎信息;
+            // 501:ChatResponse,聊天信息;
+            // 602:ContentMessage,礼物信息；
+            // 901:ErrorResponse;
+            KugouDanmu.Message s = KugouDanmu.Message.parseFrom(o);
+            if (s.hasCodec()) {
+                KugouDanmu.ContentMessage s1 = KugouDanmu.ContentMessage.parseFrom(s.getContent());
+                if (s1.hasCodec()) {
+                    KugouDanmu.ChatResponse s2 = KugouDanmu.ChatResponse.parseFrom(s1.getContent());
+                    // 进入直播间
+//                    if (cmd == 201) {
+//                        msgs.add(String.format(template, "SYS", s2.getReceivername().replace("%nick", s2.getChatmsg())));
+//                    }
+                    // 弹幕
+                    if (cmd == 501) {
+                        msgs.add(String.format(template,
+                                System.currentTimeMillis(),
+                                (System.currentTimeMillis() - startTs),
+                                s2.getSendername(),
+                                s2.getChatmsg()));
+                    }
+                }
+            }
+        }
+        return msgs;
     }
 
     @Override
-    public void writeToFile(String data, String file) {
-
+    public void writeToFile(String data, String fileName) {
+        File f = new File(fileName);
+        try {
+            FileUtils.write(f, data, StandardCharsets.UTF_8, true);
+        } catch (IOException e) {
+            log.error(ExceptionUtils.getStackTrace(e));
+        }
     }
 
     private String heartByte = "64000100";
@@ -142,13 +190,14 @@ public class KugouDanmuRecorder extends AbstractDanmuRecorder {
                 byte[] pack = JythonStruct.pack(fmt, value);
                 res = ByteUtils.mergeByteArrays(res, pack);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error(ExceptionUtils.getStackTrace(e));
+                break;
             }
         }
         try {
             res = ByteUtils.mergeByteArrays(res, JythonStruct.pack("!i", i));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(ExceptionUtils.getStackTrace(e));
         }
         res = ByteUtils.mergeByteArrays(ArrayUtils.subarray(res, 0, g(n)),
                 bytes);
@@ -190,7 +239,7 @@ public class KugouDanmuRecorder extends AbstractDanmuRecorder {
         try {
             i = JythonStruct.unpackFrom(fmt, e, g(t.index));
         } catch (ScriptException scriptException) {
-            scriptException.printStackTrace();
+            log.error(ExceptionUtils.getStackTrace(scriptException));
         }
         return i;
     }
@@ -226,10 +275,5 @@ public class KugouDanmuRecorder extends AbstractDanmuRecorder {
         public int getValue() {
             return value;
         }
-    }
-
-    public static void main(String[] args) {
-        KugouDanmuRecorder recorder = new KugouDanmuRecorder();
-        recorder.startRecord("4387125", "/tmp/test.log");
     }
 }
