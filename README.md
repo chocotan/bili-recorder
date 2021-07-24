@@ -2,7 +2,7 @@
 
 [![Maven](https://github.com/chocotan/bili-recorder/actions/workflows/maven.yml/badge.svg)](https://github.com/chocotan/bili-recorder/actions/workflows/maven.yml)
 
-这是一个大概开发好已经能用的录播工具
+这是一个大概开发好已经能用的录播工具，支持录制弹幕
 
 ## 打包
 * 你需要Java 11和maven才能正常打包
@@ -13,6 +13,8 @@
 * record.work-path: 工作目录，不管是h2数据库文件、日志，还是录播位置，默认值为`${user.home}/.bili`
 * record.check-interval: 检查直播间状态的间隔，单位是秒，默认值为40
 * server.port: 启动后的端口，默认值为30000
+
+其他功能可自行探索
 
 ## 使用
 * 你可以使用 `mvn clean package -Dmaven.test.skip` 命令打包后使用 java -jar 命令启动
