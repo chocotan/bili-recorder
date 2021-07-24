@@ -93,10 +93,10 @@ public class KugouApi {
     }
 
     public static WebSocket initWebsocket(String url, String roomId,
-                                          PublishSubject<BaseCommand> queue) {
+                                          PublishSubject<byte[]> queue) {
         Request request = new Request.Builder()
-                .url(url)
-                .header("Origin", "https://fanxing.kugou.com/")
+                .url("wss://"+url)
+                .header("Origin", "https://fanxing.kugou.com/"+roomId)
                 .header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36")
                 .build();
         return HttpClientUtil.getClient().newWebSocket(request, new WebSocketListener() {
@@ -111,7 +111,7 @@ public class KugouApi {
                 super.onFailure(webSocket, t, response);
                 try {
                     log.warn("Failed to connect, roomid={}, response={}, reason={} ",
-                            roomId, ExceptionUtils.getStackTrace(t), response.body().string());
+                            roomId, ExceptionUtils.getStackTrace(t), response!=null?response.body().string():"");
                 } catch (Exception e) {
                     // ignored
                 }
@@ -135,12 +135,7 @@ public class KugouApi {
             public void onMessage(@NotNull WebSocket webSocket, @NotNull ByteString bytes) {
                 try {
                     byte[] message = bytes.toByteArray();
-                    int t = message.length;
-                    int n = 9;
-                    if (t == 0) {
-                        return;
-                    }
-
+                    queue.onNext(message);
                 } catch (Exception e) {
                     log.error(ExceptionUtils.getStackTrace(e));
                 }

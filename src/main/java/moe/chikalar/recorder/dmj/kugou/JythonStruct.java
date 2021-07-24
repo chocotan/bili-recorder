@@ -1,6 +1,5 @@
 package moe.chikalar.recorder.dmj.kugou;
 
-import lombok.val;
 import org.python.core.*;
 import org.python.util.PythonInterpreter;
 
@@ -19,22 +18,22 @@ public class JythonStruct {
 
         PythonInterpreter interpreter = new PythonInterpreter();
         interpreter.exec("import struct\n");
-        interpreter.set("fmt", new PyString("!b"));
-        interpreter.set("val", new PyInteger(100));
+        interpreter.set("fmt", new PyString(fmt));
+        interpreter.set("val", new PyLong(val));
         interpreter.exec("res = struct.pack(fmt, val)");
         PyString result = (PyString) interpreter.get("res");
         return result.toBytes();
     }
 
-    public static int unpackFrom(String fmt, byte[] message, long val) throws ScriptException {
+    public static Integer unpackFrom(String fmt, byte[] message, long val) throws ScriptException {
 
         PythonInterpreter interpreter = new PythonInterpreter();
         interpreter.exec("import struct\n");
-        interpreter.set("fmt", new PyString("!b"));
-        interpreter.set("val", new PyInteger(100));
+        interpreter.set("fmt", new PyString(fmt));
+        interpreter.set("val", new PyLong(val));
         interpreter.set("message", new PyByteArray(message));
         interpreter.exec("res = struct.unpack_from(fmt, message, val)");
         PyTuple result = (PyTuple) interpreter.get("res");
-        return 0;
+        return (Integer) result.get(0);
     }
 }

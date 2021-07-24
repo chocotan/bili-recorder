@@ -48,13 +48,17 @@ public abstract class AbstractDanmuRecorder implements DanmuRecorder {
             for (int i = 0; i < 10000000 && !stop.get(); i++) {
                 sendHeartBeat(ws, getHeartBeatBytes());
                 try {
-                    Thread.sleep(30000);
+                    Thread.sleep(getHeartBeatInterval());
                 } catch (InterruptedException e) {
                     break;
                 }
             }
         });
         this.heartBeatThread.start();
+    }
+
+    public int getHeartBeatInterval() {
+        return 30000;
     }
 
     public void stop() {
@@ -64,4 +68,10 @@ public abstract class AbstractDanmuRecorder implements DanmuRecorder {
             this.ws.close(1000, "");
         }
     }
+
+    @Override
+    public void sendHeartBeat(WebSocket ws, byte[] heartByte) {
+        ws.send(ByteString.of(heartByte));
+    }
+
 }

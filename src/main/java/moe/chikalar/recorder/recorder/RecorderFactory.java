@@ -25,8 +25,8 @@ public class RecorderFactory {
         switch (type){
             case "bili":
                 return new NewBiliDanmuRecorder();
-//            case "kugou":
-//                return new KugouDanmuRecorder();
+            case "kugou":
+                return new KugouDanmuRecorder();
             default:
                 return new DanmuRecorder(){
                     @Override

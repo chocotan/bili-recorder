@@ -33,10 +33,6 @@ public class NewBiliDanmuRecorder extends AbstractDanmuRecorder {
         return BiliApi.initWebsocket(url, roomId, subject);
     }
 
-    @Override
-    public void sendHeartBeat(WebSocket ws, byte[] heartByte) {
-        ws.send(ByteString.of(heartByte));
-    }
 
     @Override
     public byte[] getHeartBeatBytes() {

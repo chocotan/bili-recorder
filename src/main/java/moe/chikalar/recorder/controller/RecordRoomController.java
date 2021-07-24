@@ -11,6 +11,7 @@ import moe.chikalar.recorder.entity.RecordRoom;
 import moe.chikalar.recorder.recorder.RecordHelper;
 import moe.chikalar.recorder.recorder.Recorder;
 import moe.chikalar.recorder.recorder.RecorderFactory;
+import moe.chikalar.recorder.repo.RecordHistoryRepository;
 import moe.chikalar.recorder.repo.RecordRoomRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -29,6 +30,9 @@ import java.util.Optional;
 public class RecordRoomController {
 
     private final RecordRoomRepository recordRoomRepository;
+
+    @Autowired
+    private RecordHistoryRepository historyRepository;
 
     @Autowired
     private RecorderFactory recorderFactory;
@@ -114,6 +118,7 @@ public class RecordRoomController {
         this.stopRecord(id);
         // stop 是异步的，所以这里sleep一下
         Thread.sleep(1000L);
+        historyRepository.deleteByRecordRoomId(id);
         recordRoomRepository.deleteById(id);
         return "redirect:/record";
     }
