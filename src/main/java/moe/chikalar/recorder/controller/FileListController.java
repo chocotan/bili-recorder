@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.Arrays;
@@ -71,9 +73,11 @@ public class FileListController {
         MediaType mediaType = MediaType.APPLICATION_OCTET_STREAM;
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(mediaType);
+        String fileName = file.getName();
+
         ContentDisposition disposition = ContentDisposition
                 .inline()
-                .filename(file.getName())
+                .filename(fileName, StandardCharsets.UTF_8)
                 .build();
         headers.setContentDisposition(disposition);
         return new ResponseEntity<>(resource, headers, HttpStatus.OK);
