@@ -2,6 +2,7 @@ package moe.chikalar.recorder.recorder;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import io.reactivex.subjects.PublishSubject;
 import javaslang.Tuple2;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -33,6 +35,7 @@ public class NewBiliDanmuRecorder extends AbstractDanmuRecorder {
         return BiliApi.initWebsocket(url, roomId, subject);
     }
 
+    protected final String template = "%d^^%d^^%s\r\n";
 
     @Override
     public byte[] getHeartBeatBytes() {
@@ -54,21 +57,15 @@ public class NewBiliDanmuRecorder extends AbstractDanmuRecorder {
     public void writeToFile(String data, String fileName) {
         BaseCommand cmd = JSON.parseObject(data, BaseCommand.class);
         if (cmd != null && StringUtils.isNotBlank(cmd.getCmd())) {
-            if ("DANMU_MSG".equals(cmd.getCmd())) {
-                JSONArray info = cmd.getInfo();
-                if (info != null) {
-                    String msg = (String) info.get(1);
-                    JSONArray userInfo = (JSONArray) info.get(2);
-                    Long uid = Long.valueOf("" + userInfo.get(0));
-                    String uname = (String) userInfo.get(1);
-                    String text = String.format(template, System.currentTimeMillis(),
-                            (System.currentTimeMillis() - startTs), uid, uname, msg);
-                    File file = new File(fileName);
-                    try {
-                        FileUtils.write(file, text, StandardCharsets.UTF_8, true);
-                    } catch (IOException e) {
-                        log.error(ExceptionUtils.getStackTrace(e));
-                    }
+            List<String> actions = Arrays.asList("SEND_GIFT", "DANMU_MSG", "SUPER_CHAT_MESSAGE", "GUARD_BUY");
+            if (actions.contains(cmd.getCmd())) {
+                String text = String.format(template, System.currentTimeMillis(),
+                        (System.currentTimeMillis() - startTs), JSON.toJSONString(cmd));
+                File file = new File(fileName);
+                try {
+                    FileUtils.write(file, text, StandardCharsets.UTF_8, true);
+                } catch (IOException e) {
+                    log.error(ExceptionUtils.getStackTrace(e));
                 }
             }
         }

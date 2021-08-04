@@ -6,7 +6,6 @@ import lombok.Data;
 
 @Data
 public class BaseCommand {
-    private String roomId;
     private String cmd;
     private JSONObject data;
     private JSONArray info;
