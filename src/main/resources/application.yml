@@ -14,7 +14,7 @@ spring:
     cache: false
 
 record:
-  check-interval: 40
+  check-interval: 60
   work-path: ${user.home}/.bili
 
 logging:
