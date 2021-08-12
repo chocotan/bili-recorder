@@ -68,7 +68,7 @@ public class RecordHelper {
                 Tuple2<Boolean, String> check = checkStatus(recordRoom, recorder);
                 doRecord(recordRoom, recorder, check, context);
                 recordResult = RecordResult.success(context);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 recordResult = RecordResult.error(e, context);
             } finally {
                 List<RecordListener> list = interceptors.stream().sorted(Comparator.comparingInt(RecordListener::getOrder)).collect(Collectors.toList());

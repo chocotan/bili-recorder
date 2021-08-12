@@ -27,7 +27,6 @@ public class RecordDanmuListener implements RecordListener {
             DanmuRecorder danmuRecorder = factory.getDanmuRecorder(recordRoom.getType());
             threadLocal.set(danmuRecorder);
             try {
-
                 danmuRecorder.startRecord(recordRoom.getRoomId(), danmuFileName);
                 log.info("[{}] 弹幕保存至 {}", recordRoom.getRoomId(), danmuFileName);
             } catch (Exception e) {

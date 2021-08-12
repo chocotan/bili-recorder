@@ -19,7 +19,7 @@ public class RetryListener implements RecordListener {
 
     public RecordResult afterRecord(RecordResult recordResult, RecordConfig config) {
         RecordRoom recordRoom = recordResult.getContext().getRecordRoom();
-        Exception exception = recordResult.getException();
+        Throwable exception = recordResult.getException();
         if (exception instanceof LiveRecordException) {
             log.info("[{}] 录制发生网络异常，即将重试 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(exception));
             if (!recordQueue.contains(recordRoom.getId())) {

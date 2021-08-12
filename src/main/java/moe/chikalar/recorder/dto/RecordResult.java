@@ -9,7 +9,7 @@ import lombok.Setter;
 public class RecordResult {
     private Boolean success;
     private RecordContext context;
-    private Exception exception;
+    private Throwable exception;
 
     private RecordResult(){}
 
@@ -20,7 +20,7 @@ public class RecordResult {
         return recordResult;
     }
 
-    public static RecordResult error(Exception e, RecordContext context){
+    public static RecordResult error(Throwable e, RecordContext context){
         RecordResult recordResult = new RecordResult();
         recordResult.exception = e;
         recordResult.success = false;

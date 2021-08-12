@@ -20,7 +20,7 @@ public class ResetStatus implements RecordListener {
 
     public RecordResult afterRecord(RecordResult recordResult, RecordConfig config) {
         RecordRoom recordRoom = recordResult.getContext().getRecordRoom();
-        Exception exception = recordResult.getException();
+        Throwable exception = recordResult.getException();
         if (exception instanceof LiveStatusException) {
             log.info("[{}] 当前房间未在直播", recordRoom.getRoomId());
             recordRoom.setStatus("1");
