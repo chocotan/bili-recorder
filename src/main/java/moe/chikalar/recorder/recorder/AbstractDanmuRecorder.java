@@ -36,7 +36,7 @@ public abstract class AbstractDanmuRecorder implements DanmuRecorder {
             try {
                 List<String> decodes = decode(bytes);
                 decodes.forEach(decode -> {
-                    writeToFile(decode, fileName);
+                    writeToFile(decode + System.lineSeparator(), fileName);
                 });
             } catch (Exception e) {
                 log.info(ExceptionUtils.getStackTrace(e));
