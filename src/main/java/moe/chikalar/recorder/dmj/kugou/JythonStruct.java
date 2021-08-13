@@ -1,18 +1,27 @@
 package moe.chikalar.recorder.dmj.kugou;
 
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.python.core.*;
 import org.python.modules.struct;
 import org.python.util.PythonInterpreter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.script.ScriptException;
 import java.util.Properties;
 
 public class JythonStruct {
+    static Logger logger = LoggerFactory.getLogger(JythonStruct.class);
     static {
-        Properties props = new Properties();
-        props.put("python.import.site", "false");
-        Properties preprops = System.getProperties();
-        PythonInterpreter.initialize(preprops, props, new String[0]);
+        try {
+            Properties props = new Properties();
+            props.put("python.import.site", "false");
+            Properties preprops = System.getProperties();
+            PythonInterpreter.initialize(preprops, props, new String[0]);
+        } catch (Throwable e) {
+            logger.error(ExceptionUtils.getStackTrace(e));
+        }
     }
 
     public static byte[] pack(String fmt, long val) throws ScriptException {
@@ -45,12 +54,5 @@ public class JythonStruct {
         return (Integer) struct.unpack_from(new PyString(fmt).asString(), new PyByteArray(message), new PyLong(val).asInt()).get(0);
     }
 
-    public static void main(String[] args) {
-        PyObject[] objs = new PyObject[]{
-                new PyString("!i"),
-               new PyLong(1)
-        };
-        PyString pack = struct.pack(objs);
-        System.out.println(pack);
-    }
+
 }

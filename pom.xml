@@ -175,6 +175,12 @@
                         </exclude>
                     </excludes>
                     <includeSystemScope>true</includeSystemScope>
+                    <requiresUnpack>
+                        <dependency>
+                            <groupId>org.python</groupId>
+                            <artifactId>jython</artifactId>
+                        </dependency>
+                    </requiresUnpack>
                 </configuration>
             </plugin>
             <plugin>
