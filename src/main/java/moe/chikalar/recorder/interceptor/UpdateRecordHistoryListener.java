@@ -33,6 +33,15 @@ public class UpdateRecordHistoryListener implements RecordListener {
             recordHistoryRepository.save(history);
         } else {
             if (history != null) {
+                Date endTime = new Date();
+                history.setEndTime(endTime);
+                history.setFileLength(endTime.getTime() - history.getStartTime().getTime());
+                history.setFilePath(recordResult.getContext().getPath());
+                try {
+                    history.setFileSize(new File(recordResult.getContext().getPath()).length());
+                } catch (Exception e) {
+                    // ignored
+                }
                 history.setStatus("error");
                 recordHistoryRepository.save(history);
             }
