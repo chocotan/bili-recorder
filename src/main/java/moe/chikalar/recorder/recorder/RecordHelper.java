@@ -113,6 +113,9 @@ public class RecordHelper {
         String uname = recordRoom.getUname();
         String folder = defaultFolder + File.separator + uname;
         String fileName = generateFileName(recordRoom);
+        if (fileName.contains("/")) {
+            fileName = fileName.replace("/", "_");
+        }
         String path = folder + File.separator + fileName;
 
         // before record
