@@ -5,18 +5,35 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 
 import java.io.IOException;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
 import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class HttpClientUtil {
-    private static OkHttpClient client = new OkHttpClient().newBuilder()
-            .connectTimeout(8, TimeUnit.SECONDS)
-            .readTimeout(8, TimeUnit.SECONDS)
-            .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-            .writeTimeout(8, TimeUnit.SECONDS)
-            .build();
+    private static OkHttpClient client;
+    private static OkHttpClient clientAllowCookie;
+    static {
+        client = new OkHttpClient().newBuilder()
+                .connectTimeout(8, TimeUnit.SECONDS)
+                .readTimeout(8, TimeUnit.SECONDS)
+                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+                .writeTimeout(8, TimeUnit.SECONDS)
+                .build();
+
+        CookieManager cookieManager = new CookieManager();
+        cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+        CookieJar cookieJar = new JavaNetCookieJar(cookieManager);
+        clientAllowCookie = new OkHttpClient().newBuilder()
+                .connectTimeout(8, TimeUnit.SECONDS)
+                .readTimeout(8, TimeUnit.SECONDS)
+                .protocols(Collections.singletonList(Protocol.HTTP_1_1))
+                .writeTimeout(8, TimeUnit.SECONDS)
+                .cookieJar(cookieJar)
+                .build();
+    }
 
     public static String post(String url, Map<String, String> headers, String json) throws IOException {
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), json);
@@ -28,6 +45,25 @@ public class HttpClientUtil {
         Response response = client.newCall(build).execute();
         String string = response.body().string();
         log.info("url={}, header={}, param={}, resp={}", url, JSON.toJSONString(headers), json, string);
+        return string;
+    }
+
+    public static String post(String url, Map<String, String> headers,
+                              Map<String, String> formParams,
+                              Boolean allowCookie) throws IOException {
+        FormBody.Builder builder = new FormBody.Builder();
+        formParams.forEach(builder::add);
+        RequestBody formBody = builder
+                .build();
+        Request build = new Request.Builder()
+                .headers(Headers.of(headers))
+                .url(url)
+                .post(formBody)
+                .build();
+        OkHttpClient currentClient = allowCookie? clientAllowCookie: client;
+        Response response = currentClient.newCall(build).execute();
+        String string = response.body().string();
+        log.info("url={}, header={}, param={}, resp={}", url, JSON.toJSONString(headers), formParams, string);
         return string;
     }
 
@@ -53,7 +89,7 @@ public class HttpClientUtil {
         return response.body().string();
     }
 
-    public static OkHttpClient getClient(){
+    public static OkHttpClient getClient() {
         return client;
     }
 

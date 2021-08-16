@@ -43,7 +43,6 @@
         </dependency>
 
 
-
         <!--        <dependency>-->
         <!--            <groupId>org.springframework.boot</groupId>-->
         <!--            <artifactId>spring-boot-devtools</artifactId>-->
@@ -68,6 +67,12 @@
             <artifactId>okhttp</artifactId>
             <version>4.9.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp-urlconnection</artifactId>
+            <version>4.9.1</version>
+        </dependency>
+
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
@@ -138,11 +143,7 @@
             <artifactId>rxjava</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>org.springframework.experimental</groupId>
-            <artifactId>spring-native</artifactId>
-            <version>${spring-native.version}</version>
-        </dependency>
+
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
@@ -157,6 +158,11 @@
             <groupId>org.python</groupId>
             <artifactId>jython</artifactId>
             <version>2.7.2</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.15</version>
         </dependency>
     </dependencies>
 
@@ -231,26 +237,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.springframework.experimental</groupId>
-                <artifactId>spring-aot-maven-plugin</artifactId>
-                <version>${spring-native.version}</version>
-                <executions>
-                    <execution>
-                        <id>test-generate</id>
-                        <goals>
-                            <goal>test-generate</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>generate</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
 
         </plugins>
         <resources>
@@ -298,67 +284,6 @@
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
-
-    <profiles>
-        <profile>
-            <id>native</id>
-            <properties>
-                <repackage.classifier>exec</repackage.classifier>
-                <native-buildtools.version>0.9.1</native-buildtools.version>
-            </properties>
-            <dependencies>
-                <dependency>
-                    <groupId>org.graalvm.buildtools</groupId>
-                    <artifactId>junit-platform-native</artifactId>
-                    <version>${native-buildtools.version}</version>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.graalvm.buildtools</groupId>
-                        <artifactId>native-maven-plugin</artifactId>
-                        <version>${native-buildtools.version}</version>
-                        <configuration>
-                            <mainClass>moe.chikalar.recorder.RecorderApplication</mainClass>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>test-native</id>
-                                <phase>test</phase>
-                                <goals>
-                                    <goal>test</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>build-native</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>build</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-
-                    <plugin>
-                        <groupId>org.springframework.boot</groupId>
-                        <artifactId>spring-boot-maven-plugin</artifactId>
-                        <configuration>
-                            <excludes>
-                                <exclude>
-                                    <groupId>org.projectlombok</groupId>
-                                    <artifactId>lombok</artifactId>
-                                </exclude>
-                            </excludes>
-                            <includeSystemScope>true</includeSystemScope>
-                        </configuration>
-                    </plugin>
-
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
 
 </project>

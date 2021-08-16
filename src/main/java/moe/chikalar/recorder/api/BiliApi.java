@@ -21,15 +21,27 @@ import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
 import okio.ByteString;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class BiliApi {
@@ -75,10 +87,6 @@ public class BiliApi {
         String s = HttpClientUtil.get(formatUrl, additionalHeaders);
         return JsonPath.read(s, "$.data.durl[*].url");
     }
-
-
-
-
 
 
     public static Tuple2<String, byte[]> beforeInitWs(String roomId) {
@@ -131,6 +139,72 @@ public class BiliApi {
         additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
         return HttpClientUtil.get(formatUrl, additionalHeaders);
     }
+
+
+    public static String getLoginKey() throws IOException {
+        String url = "https://passport.bilibili.com/api/oauth2/getKey";
+        Map<String, String> params = new LinkedHashMap<>();
+        String appSecret = "af125a0d5279fd576c1b4418a3e8276d";
+        params.put("appkey", "aae92bc66f3edfab");
+        params.put("platform", "pc");
+        params.put("ts", "" + System.currentTimeMillis() / 1000);
+        params.put("sign", sign(params, appSecret));
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "application/x-www-form-urlencoded");
+        headers.put("Accept", "application/json, text/javascript, */*; q=0.01");
+        headers.put("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
+        return HttpClientUtil.post(url, headers, params, true);
+    }
+
+    public static String login() throws IOException {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
+        Map<String, String> params = new HashMap<>();
+        params.put("appkey", "aae92bc66f3edfab");
+        String loginKeyResp = getLoginKey();
+        JsonPath.read(loginKeyResp, "");
+        params.put("password", "password");
+        params.put("platform", "pc");
+        params.put("ts", "" + System.currentTimeMillis() / 1000);
+        params.put("username", "");
+        params.put("", "");
+        String url = "";
+        // TODO
+        return null;
+    }
+
+//    public static void main(String[] args) throws Exception {
+//        String loginKey = getLoginKey();
+//        System.out.println(loginKey);
+//        System.out.println("" + JsonPath.read(loginKey, "data.key"));
+//        System.out.println("" + JsonPath.read(loginKey, "data.hash"));
+////        System.out.println(rsa("hello", "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDjb4V7EidX/ym28t2ybo0U6t0n\n6p4ej8VjqKHg100va6jkNbNTrLQqMCQCAYtXMXXp2Fwkk6WR+12N9zknLjf+C9sx\n/+l48mjUU8RqahiFD1XT/u2e0m2EN029OhCgkHx3Fc/KlFSIbak93EH/XlYis0w+\nXl69GV6klzgxW6d2xQIDAQAB\n-----END PUBLIC KEY-----\n"));
+//    }
+
+    public static String sign(Map<String, String> params, String appSecret) {
+        // 签名规则： md5(url编码后的请求参数（body）)
+        String body = params.entrySet().stream().map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
+                .collect(Collectors.joining("&"));
+        return DigestUtils.md5Hex(body + appSecret);
+    }
+
+    public static String rsa(String str, String key) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, InvalidKeyException {
+        key = key
+                .replace("-----BEGIN PUBLIC KEY-----", "")
+                .replaceAll(System.lineSeparator(), "")
+                .replace("-----END PUBLIC KEY-----", "");
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(key.getBytes(StandardCharsets.UTF_8)));
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        PublicKey publicKey = keyFactory.generatePublic(keySpec);
+        Cipher encryptCipher = Cipher.getInstance("RSA");
+        encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        byte[] secretMessageBytes = str.getBytes(StandardCharsets.UTF_8);
+        byte[] encryptedMessageBytes = encryptCipher.doFinal(secretMessageBytes);
+        String encodedMessage = Base64.getEncoder().encodeToString(encryptedMessageBytes);
+        return encodedMessage;
+
+    }
+
 
     /**
      * 初始化ws连接，在连接之前要调用三个接口组装成一个byte数组作为第一个请求数据发送
