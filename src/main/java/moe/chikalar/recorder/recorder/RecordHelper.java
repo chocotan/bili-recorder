@@ -51,7 +51,7 @@ public class RecordHelper {
     public void recordAndErrorHandle(RecordRoom recordRoom) {
         log.info("[{}] 接收到录制任务", recordRoom.getRoomId());
         Optional<Recorder> recorderOpt = recorderFactory.getRecorder(recordRoom.getType());
-        if (recorderOpt.isEmpty())
+        if (!recorderOpt.isPresent())
             return;
         // 将状态设置为ing
         recordRoom.setStatus("3");

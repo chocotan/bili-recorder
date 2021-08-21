@@ -4,13 +4,19 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.hiczp.bilibili.api.BilibiliClient;
+import com.hiczp.bilibili.api.BilibiliClientProperties;
+import com.hiczp.bilibili.api.Continuation;
+import com.hiczp.bilibili.api.passport.model.LoginResponse;
 import com.jayway.jsonpath.JsonPath;
 import io.reactivex.subjects.Subject;
 import javaslang.Tuple;
 import javaslang.Tuple2;
+import kotlin.coroutines.CoroutineContext;
+import kotlin.coroutines.EmptyCoroutineContext;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import moe.chikalar.recorder.dmj.bili.cmd.BaseCommand;
+import lombok.val;
 import moe.chikalar.recorder.dmj.bili.data.BiliDataUtil;
 import moe.chikalar.recorder.dmj.bili.data.BiliMsg;
 import moe.chikalar.recorder.dmj.bili.data.ByteUtils;
@@ -20,6 +26,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.WebSocket;
 import okhttp3.WebSocketListener;
+import okhttp3.logging.HttpLoggingInterceptor;
 import okio.ByteString;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -31,8 +38,8 @@ import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -41,6 +48,9 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -139,6 +149,72 @@ public class BiliApi {
         additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
         return HttpClientUtil.get(formatUrl, additionalHeaders);
     }
+
+
+
+    public static BilibiliClient login(String username, String password) throws IOException, ExecutionException, InterruptedException {
+        BilibiliClientProperties bilibiliClientProperties = new BilibiliClientProperties();
+        bilibiliClientProperties.setAppKey("bca7e84c2d947ac6");
+        bilibiliClientProperties.setAppSecret("60698ba2f68e01ce44738920a0ffe768");
+        BilibiliClient client = new BilibiliClient(bilibiliClientProperties, HttpLoggingInterceptor.Level.NONE);
+        CompletableFuture<BilibiliClient> clientFuture = new CompletableFuture<BilibiliClient>();
+        client.login(username, password, null, null,null,new Continuation<LoginResponse>() {
+            @NotNull
+            @Override
+            public CoroutineContext getContext() {
+                return EmptyCoroutineContext.INSTANCE;
+            }
+            @Override
+            public void resumeWithException(@NotNull Throwable throwable) {
+
+            }
+            @Override
+            public void resume(LoginResponse loginResponse) {
+                clientFuture.complete(client);
+            }
+        });
+        return clientFuture.get();
+    }
+
+
+//    public static void main(String[] args) throws Exception {
+//        String loginKey = getLoginKey();
+//        System.out.println(loginKey);
+//        System.out.println("" + JsonPath.read(loginKey, "data.key"));
+//        System.out.println("" + JsonPath.read(loginKey, "data.hash"));
+////        System.out.println(rsa("hello", "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDjb4V7EidX/ym28t2ybo0U6t0n\n6p4ej8VjqKHg100va6jkNbNTrLQqMCQCAYtXMXXp2Fwkk6WR+12N9zknLjf+C9sx\n/+l48mjUU8RqahiFD1XT/u2e0m2EN029OhCgkHx3Fc/KlFSIbak93EH/XlYis0w+\nXl69GV6klzgxW6d2xQIDAQAB\n-----END PUBLIC KEY-----\n"));
+//    }
+
+    public static String sign(Map<String, String> params, String appSecret) {
+        // 签名规则： md5(url编码后的请求参数（body）)
+        String body = params.entrySet().stream().map(e -> {
+            try {
+                return e.getKey() + "=" + URLEncoder.encode(e.getValue(), String.valueOf(StandardCharsets.UTF_8));
+            } catch (UnsupportedEncodingException unsupportedEncodingException) {
+                return "";
+            }
+        })
+                .collect(Collectors.joining("&"));
+        return DigestUtils.md5Hex(body + appSecret);
+    }
+
+    public static String rsa(String str, String key) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, InvalidKeyException {
+        key = key
+                .replace("-----BEGIN PUBLIC KEY-----", "")
+                .replaceAll(System.lineSeparator(), "")
+                .replace("-----END PUBLIC KEY-----", "");
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(key.getBytes(StandardCharsets.UTF_8)));
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        PublicKey publicKey = keyFactory.generatePublic(keySpec);
+        Cipher encryptCipher = Cipher.getInstance("RSA");
+        encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        byte[] secretMessageBytes = str.getBytes(StandardCharsets.UTF_8);
+        byte[] encryptedMessageBytes = encryptCipher.doFinal(secretMessageBytes);
+        String encodedMessage = Base64.getEncoder().encodeToString(encryptedMessageBytes);
+        return encodedMessage;
+
+    }
+
 
     /**
      * 初始化ws连接，在连接之前要调用三个接口组装成一个byte数组作为第一个请求数据发送

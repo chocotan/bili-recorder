@@ -39,7 +39,7 @@ public class SplitVideo implements RecordListener {
                     Optional<Stream> videoInfo = getVideoInfo(filePath);
                     Optional<Float> durationOpt = videoInfo
                             .map(Stream::getDuration);
-                    if (durationOpt.isEmpty()) {
+                    if (!durationOpt.isPresent()) {
                         return recordResult;
                     }
                     float duration = durationOpt.get();
@@ -75,7 +75,7 @@ public class SplitVideo implements RecordListener {
                 }
 
                 Optional<Stream> durationOpt = getVideoInfo(filePath);
-                if (durationOpt.isEmpty()) {
+                if (!durationOpt.isPresent()) {
                     return recordResult;
                 }
                 float duration = durationOpt.get().getDuration();
@@ -104,7 +104,7 @@ public class SplitVideo implements RecordListener {
                     // 获取新文件大小
 
                     Optional<Stream> videoInfo = getVideoInfo(newFileName);
-                    if (videoInfo.isEmpty()) {
+                    if (!videoInfo.isPresent()) {
                         return recordResult;
                     }
                     long currentFileSeconds = videoInfo.get().getDuration().longValue();

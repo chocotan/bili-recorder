@@ -23,4 +23,8 @@ public class RecordConfig {
     private Boolean splitFileDeleteSource = false;
 
 
+    private Boolean uploadToBili = false;
+    private String uploadUsername;
+    private String uploadPassword;
+
 }
