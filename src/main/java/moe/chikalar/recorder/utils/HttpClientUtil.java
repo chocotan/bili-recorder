@@ -3,6 +3,7 @@ package moe.chikalar.recorder.utils;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import retrofit2.http.Multipart;
 
 import java.io.IOException;
 import java.net.CookieManager;
@@ -15,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 public class HttpClientUtil {
     private static OkHttpClient client;
     private static OkHttpClient clientAllowCookie;
+
     static {
         client = new OkHttpClient().newBuilder()
                 .connectTimeout(8, TimeUnit.SECONDS)
@@ -60,7 +62,7 @@ public class HttpClientUtil {
                 .url(url)
                 .post(formBody)
                 .build();
-        OkHttpClient currentClient = allowCookie? clientAllowCookie: client;
+        OkHttpClient currentClient = allowCookie ? clientAllowCookie : client;
         Response response = currentClient.newCall(build).execute();
         String string = response.body().string();
         log.info("url={}, header={}, param={}, resp={}", url, JSON.toJSONString(headers), formParams, string);
@@ -87,6 +89,23 @@ public class HttpClientUtil {
                 .build()
         ).execute();
         return response.body().string();
+    }
+
+    public static String upload(String url, Map<String, Object> params) throws IOException {
+        MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+        params.forEach((k, v) -> {
+            if (v instanceof String)
+                builder.addFormDataPart(k, (String) v);
+            else {
+                builder.addFormDataPart(k, "file", RequestBody.create((byte[]) v));
+            }
+        });
+
+        Request request = new Request.Builder()
+                .url(url)
+                .post(builder.build())
+                .build();
+        return clientAllowCookie.newCall(request).execute().body().string();
     }
 
     public static OkHttpClient getClient() {

@@ -7,6 +7,8 @@ import com.alibaba.fastjson.TypeReference;
 import com.hiczp.bilibili.api.BilibiliClient;
 import com.hiczp.bilibili.api.BilibiliClientProperties;
 import com.hiczp.bilibili.api.Continuation;
+import com.hiczp.bilibili.api.member.model.PreUpload2Response;
+import com.hiczp.bilibili.api.member.model.PreUploadResponse;
 import com.hiczp.bilibili.api.passport.model.LoginResponse;
 import com.jayway.jsonpath.JsonPath;
 import io.reactivex.subjects.Subject;
@@ -151,23 +153,24 @@ public class BiliApi {
     }
 
 
-
     public static BilibiliClient login(String username, String password) throws IOException, ExecutionException, InterruptedException {
         BilibiliClientProperties bilibiliClientProperties = new BilibiliClientProperties();
         bilibiliClientProperties.setAppKey("bca7e84c2d947ac6");
         bilibiliClientProperties.setAppSecret("60698ba2f68e01ce44738920a0ffe768");
         BilibiliClient client = new BilibiliClient(bilibiliClientProperties, HttpLoggingInterceptor.Level.NONE);
         CompletableFuture<BilibiliClient> clientFuture = new CompletableFuture<BilibiliClient>();
-        client.login(username, password, null, null,null,new Continuation<LoginResponse>() {
+        client.login(username, password, null, null, null, new Continuation<LoginResponse>() {
             @NotNull
             @Override
             public CoroutineContext getContext() {
                 return EmptyCoroutineContext.INSTANCE;
             }
+
             @Override
             public void resumeWithException(@NotNull Throwable throwable) {
 
             }
+
             @Override
             public void resume(LoginResponse loginResponse) {
                 clientFuture.complete(client);
@@ -176,14 +179,53 @@ public class BiliApi {
         return clientFuture.get();
     }
 
+    public static PreUploadResponse preUpload(BilibiliClient client) throws ExecutionException, InterruptedException {
+        CompletableFuture<PreUploadResponse> clientFuture = new CompletableFuture<>();
+        client.getMemberAPI().preUpload().await(new Continuation<PreUploadResponse>() {
+            @NotNull
+            @Override
+            public CoroutineContext getContext() {
+                return EmptyCoroutineContext.INSTANCE;
+            }
 
-//    public static void main(String[] args) throws Exception {
-//        String loginKey = getLoginKey();
-//        System.out.println(loginKey);
-//        System.out.println("" + JsonPath.read(loginKey, "data.key"));
-//        System.out.println("" + JsonPath.read(loginKey, "data.hash"));
-////        System.out.println(rsa("hello", "-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDjb4V7EidX/ym28t2ybo0U6t0n\n6p4ej8VjqKHg100va6jkNbNTrLQqMCQCAYtXMXXp2Fwkk6WR+12N9zknLjf+C9sx\n/+l48mjUU8RqahiFD1XT/u2e0m2EN029OhCgkHx3Fc/KlFSIbak93EH/XlYis0w+\nXl69GV6klzgxW6d2xQIDAQAB\n-----END PUBLIC KEY-----\n"));
-//    }
+            @Override
+            public void resumeWithException(@NotNull Throwable throwable) {
+
+            }
+
+            @Override
+            public void resume(PreUploadResponse uploadResponse) {
+                clientFuture.complete(uploadResponse);
+            }
+        });
+        return clientFuture.get();
+    }
+
+
+    public static PreUpload2Response preUpload2(BilibiliClient client,
+                                                String profile, String mid
+    ) throws ExecutionException, InterruptedException {
+        CompletableFuture<PreUpload2Response> clientFuture = new CompletableFuture<>();
+        client.getMemberAPI().preUpload2(
+                profile, mid).await(new Continuation<PreUpload2Response>() {
+            @NotNull
+            @Override
+            public CoroutineContext getContext() {
+                return EmptyCoroutineContext.INSTANCE;
+            }
+
+            @Override
+            public void resumeWithException(@NotNull Throwable throwable) {
+                throwable.printStackTrace();
+            }
+
+            @Override
+            public void resume(PreUpload2Response uploadResponse) {
+                clientFuture.complete(uploadResponse);
+            }
+        });
+        return clientFuture.get();
+    }
 
     public static String sign(Map<String, String> params, String appSecret) {
         // 签名规则： md5(url编码后的请求参数（body）)
@@ -212,7 +254,49 @@ public class BiliApi {
         byte[] encryptedMessageBytes = encryptCipher.doFinal(secretMessageBytes);
         String encodedMessage = Base64.getEncoder().encodeToString(encryptedMessageBytes);
         return encodedMessage;
+    }
 
+    public static String uploadChunk(BilibiliClient client,
+                                     String uploadUrl,
+                                     String fileName,
+                                     byte[] bytes, long size, int nowChunk,
+                                     int chunkNum) throws ExecutionException, InterruptedException, IOException {
+
+
+        String md5 = DigestUtils.md5Hex(bytes);
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("version", "2.0.0.1054");
+        params.put("filesize", "" + size);
+        params.put("chunk", "" + nowChunk);
+        params.put("chunks", "" + chunkNum);
+        params.put("md5", md5);
+        params.put("file", bytes);
+        return HttpClientUtil.upload(uploadUrl, params);
+    }
+
+    public static Map<String, Object> publish(BilibiliClient client, String accessToken, Map<String, Object> json) throws ExecutionException, InterruptedException {
+        CompletableFuture<Map<String, Object>> clientFuture = new CompletableFuture<>();
+        Map<String, String> map = new HashMap<>();
+        map.put("access_key", accessToken);
+        String sign = sign(map, client.getBillingClientProperties().getAppSecret());
+        client.getMemberAPI().publish(accessToken, sign, json).await(new Continuation<Map<String, Object>>() {
+            @NotNull
+            @Override
+            public CoroutineContext getContext() {
+                return EmptyCoroutineContext.INSTANCE;
+            }
+
+            @Override
+            public void resumeWithException(@NotNull Throwable throwable) {
+                throwable.printStackTrace();
+            }
+
+            @Override
+            public void resume(Map<String, Object> uploadResponse) {
+                clientFuture.complete(uploadResponse);
+            }
+        });
+        return clientFuture.get();
     }
 
 
@@ -221,7 +305,7 @@ public class BiliApi {
      * 给B站ws服务端
      *
      * @param url    这个ulr是调用这个接口之前的接口获取到的弹幕ws地址
-     * @param roomId 房间号?
+     * @param roomId 房间号
      * @return 连接的ws对象
      */
     public static WebSocket initWebsocket(String url, String roomId, Subject<byte[]> queue) {

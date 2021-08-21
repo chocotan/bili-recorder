@@ -26,5 +26,9 @@ public class RecordConfig {
     private Boolean uploadToBili = false;
     private String uploadUsername;
     private String uploadPassword;
+    private String uploadUid;
+
+    private String titleTemplate = "【${date}】 ${uname} 录播";
+    private String descTemplate = "${uname} ${date} 录播";
 
 }

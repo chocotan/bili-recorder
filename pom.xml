@@ -180,8 +180,9 @@
         <dependency>
             <groupId>com.hiczp</groupId>
             <artifactId>bilibili-api</artifactId>
-            <version>0.2.3</version>
+            <version>0.2.4-SNAPSHOT</version>
         </dependency>
+
 
 
     </dependencies>
