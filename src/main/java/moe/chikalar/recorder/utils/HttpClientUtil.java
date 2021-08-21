@@ -19,20 +19,20 @@ public class HttpClientUtil {
 
     static {
         client = new OkHttpClient().newBuilder()
-                .connectTimeout(8, TimeUnit.SECONDS)
-                .readTimeout(8, TimeUnit.SECONDS)
+                .connectTimeout(150, TimeUnit.SECONDS)
+                .readTimeout(150, TimeUnit.SECONDS)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-                .writeTimeout(8, TimeUnit.SECONDS)
+                .writeTimeout(150, TimeUnit.SECONDS)
                 .build();
 
         CookieManager cookieManager = new CookieManager();
         cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
         CookieJar cookieJar = new JavaNetCookieJar(cookieManager);
         clientAllowCookie = new OkHttpClient().newBuilder()
-                .connectTimeout(8, TimeUnit.SECONDS)
-                .readTimeout(8, TimeUnit.SECONDS)
+                .connectTimeout(150, TimeUnit.SECONDS)
+                .readTimeout(150, TimeUnit.SECONDS)
                 .protocols(Collections.singletonList(Protocol.HTTP_1_1))
-                .writeTimeout(8, TimeUnit.SECONDS)
+                .writeTimeout(150, TimeUnit.SECONDS)
                 .cookieJar(cookieJar)
                 .build();
     }
@@ -91,8 +91,9 @@ public class HttpClientUtil {
         return response.body().string();
     }
 
-    public static String upload(String url, Map<String, Object> params) throws IOException {
+    public static String upload(String url, Map<String,String> headers, Map<String, Object> params) throws IOException {
         MultipartBody.Builder builder = new MultipartBody.Builder().setType(MultipartBody.FORM);
+
         params.forEach((k, v) -> {
             if (v instanceof String)
                 builder.addFormDataPart(k, (String) v);
@@ -101,12 +102,17 @@ public class HttpClientUtil {
             }
         });
 
-        Request request = new Request.Builder()
+        Request.Builder post = new Request.Builder()
                 .url(url)
-                .post(builder.build())
+                .post(builder.build());
+        headers.forEach(post::header);
+        Request request = post
                 .build();
-        return clientAllowCookie.newCall(request).execute().body().string();
+        String string = clientAllowCookie.newCall(request).execute().body().string();
+        log.info("url={}, resp={}", url, string);
+        return string;
     }
+
 
     public static OkHttpClient getClient() {
         return client;

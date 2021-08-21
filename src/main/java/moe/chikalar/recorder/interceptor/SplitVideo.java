@@ -8,11 +8,18 @@ import com.github.kokorin.jaffree.ffprobe.FFprobeResult;
 import com.github.kokorin.jaffree.ffprobe.Stream;
 import moe.chikalar.recorder.dto.RecordConfig;
 import moe.chikalar.recorder.dto.RecordResult;
+import moe.chikalar.recorder.entity.RecordHistory;
+import moe.chikalar.recorder.repo.RecordHistoryRepository;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Component
 public class SplitVideo implements RecordListener {
@@ -24,10 +31,15 @@ public class SplitVideo implements RecordListener {
     // 因为flv的时间戳可能会有问题，分割视频最好强制使用mp4文件，分割视频文件的时候，最好往后多5秒，下一个视频往前5秒，防止出现无画面的情况
     // https://video.stackexchange.com/questions/18284/cutting-with-ffmpeg-results-in-few-seconds-of-black-screen-how-do-i-fix-this
 
+
+    @Autowired
+    private RecordHistoryRepository historyRepository;
+
     @Override
     public RecordResult afterRecord(RecordResult recordResult, RecordConfig config) {
 
         if (config.getConvertToMp4()) {
+            RecordHistory history = recordResult.getContext().getAttribute("history");
             String filePath = recordResult.getContext().getPath();
 
             if (StringUtils.isBlank(filePath)) {
@@ -49,6 +61,7 @@ public class SplitVideo implements RecordListener {
                         return recordResult;
                     }
 
+                    List<String> extraFiles = new ArrayList<>();
                     for (int starTime = 0, idx = 1; starTime < duration; starTime += splitFileDurationInSeconds, idx++) {
                         String newFileName = filePath.replaceAll("(.*).mp4", "$1-" + idx + ".mp4");
                         // 从第2次开始，开始时间往前挪5s，结束时间往后挪5s
@@ -61,11 +74,14 @@ public class SplitVideo implements RecordListener {
                                 .addArguments("-c", "copy")
                                 .addOutput(UrlOutput.toUrl(newFileName))
                                 .execute();
+                        extraFiles.add(newFileName);
                     }
-
-
+                    // 更新history的 extraFiles字段
+                    if (history != null) {
+                        history.setExtraFilePaths(String.join(",", extraFiles));
+                        historyRepository.save(history);
+                    }
                 }
-
             }
             if (config.getSplitFileBySize()) {
                 long sizeInB = file.length();
@@ -82,16 +98,12 @@ public class SplitVideo implements RecordListener {
                 float bitRate = durationOpt.get().getBitRate();
 
                 int offsetInSeconds = 5;
-//                remainingTime - currentTime <
+                List<String> extraFiles = new ArrayList<>();
                 for (int starTime = 0, idx = 1; starTime <= duration - offsetInSeconds; idx++) {
                     String newFileName = filePath.replaceAll("(.*).mp4", "$1-" + idx + ".mp4");
                     // 从第2次开始，开始时间往前挪5s，结束时间往后挪5s
                     float splitLength = idx == 1 ? splitByteLength : (splitByteLength + (bitRate * offsetInSeconds / 8));
                     int recordStartTime = idx == 1 ? starTime : (starTime - offsetInSeconds);
-                    // 如果现在的开始时间和结束时间相差不大——20s以内，结束时间直接设置为最大
-//                    if (duration - starTime == 20) {
-//                        splitLength = 3600000000L;
-//                    }
                     FFmpeg.atPath()
                             .setLogLevel(LogLevel.INFO)
                             .setOverwriteOutput(true)
@@ -110,7 +122,11 @@ public class SplitVideo implements RecordListener {
                     long currentFileSeconds = videoInfo.get().getDuration().longValue();
                     starTime = (int) (starTime + currentFileSeconds - offsetInSeconds);
                 }
-
+                // 更新history的 extraFiles字段
+                if (history != null) {
+                    history.setExtraFilePaths(String.join(",", extraFiles));
+                    historyRepository.save(history);
+                }
             }
             if (config.getSplitFileDeleteSource()) {
                 file.delete();

@@ -24,12 +24,14 @@ public class UpdateRecordHistoryListener implements RecordListener {
             history.setEndTime(endTime);
             history.setFileLength(endTime.getTime() - history.getStartTime().getTime());
             history.setStatus("done");
+            history.setUploadStatus(config.getUploadToBili() ? "1" : "0");
             history.setFilePath(recordResult.getContext().getPath());
             try {
                 history.setFileSize(new File(recordResult.getContext().getPath()).length());
             } catch (Exception e) {
                 // ignored
             }
+
             recordHistoryRepository.save(history);
         } else {
             if (history != null) {
@@ -42,6 +44,7 @@ public class UpdateRecordHistoryListener implements RecordListener {
                 } catch (Exception e) {
                     // ignored
                 }
+                history.setUploadStatus(config.getUploadToBili() ? "1" : "0");
                 history.setStatus("error");
                 recordHistoryRepository.save(history);
             }

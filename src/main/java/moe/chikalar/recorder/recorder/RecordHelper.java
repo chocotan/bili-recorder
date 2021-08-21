@@ -122,6 +122,7 @@ public class RecordHelper {
         List<RecordListener> list = interceptors.stream().sorted(Comparator.comparingInt(RecordListener::getOrder)).collect(Collectors.toList());
         context.setRecordRoom(recordRoom);
         context.setPath(path);
+        context.addAttribute("title", title);
 
         for (RecordListener listener : list) {
             try {

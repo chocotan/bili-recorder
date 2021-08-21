@@ -7,6 +7,8 @@ import com.alibaba.fastjson.TypeReference;
 import com.hiczp.bilibili.api.BilibiliClient;
 import com.hiczp.bilibili.api.BilibiliClientProperties;
 import com.hiczp.bilibili.api.Continuation;
+import com.hiczp.bilibili.api.app.model.MyInfo;
+import com.hiczp.bilibili.api.member.model.AddResponse;
 import com.hiczp.bilibili.api.member.model.PreUpload2Response;
 import com.hiczp.bilibili.api.member.model.PreUploadResponse;
 import com.hiczp.bilibili.api.passport.model.LoginResponse;
@@ -18,7 +20,6 @@ import kotlin.coroutines.CoroutineContext;
 import kotlin.coroutines.EmptyCoroutineContext;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import lombok.val;
 import moe.chikalar.recorder.dmj.bili.data.BiliDataUtil;
 import moe.chikalar.recorder.dmj.bili.data.BiliMsg;
 import moe.chikalar.recorder.dmj.bili.data.ByteUtils;
@@ -52,7 +53,6 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -157,7 +157,7 @@ public class BiliApi {
         BilibiliClientProperties bilibiliClientProperties = new BilibiliClientProperties();
         bilibiliClientProperties.setAppKey("bca7e84c2d947ac6");
         bilibiliClientProperties.setAppSecret("60698ba2f68e01ce44738920a0ffe768");
-        BilibiliClient client = new BilibiliClient(bilibiliClientProperties, HttpLoggingInterceptor.Level.NONE);
+        BilibiliClient client = new BilibiliClient(bilibiliClientProperties, HttpLoggingInterceptor.Level.BASIC);
         CompletableFuture<BilibiliClient> clientFuture = new CompletableFuture<BilibiliClient>();
         client.login(username, password, null, null, null, new Continuation<LoginResponse>() {
             @NotNull
@@ -198,12 +198,16 @@ public class BiliApi {
                 clientFuture.complete(uploadResponse);
             }
         });
-        return clientFuture.get();
+        PreUploadResponse object = clientFuture.get();
+        log.info("url={}, resp={}", "https://member.bilibili.com/preupload",
+                JSON.toJSONString(object));
+        return object;
     }
 
 
     public static PreUpload2Response preUpload2(BilibiliClient client,
-                                                String profile, String mid
+                                                String profile,
+                                                String mid
     ) throws ExecutionException, InterruptedException {
         CompletableFuture<PreUpload2Response> clientFuture = new CompletableFuture<>();
         client.getMemberAPI().preUpload2(
@@ -224,7 +228,11 @@ public class BiliApi {
                 clientFuture.complete(uploadResponse);
             }
         });
-        return clientFuture.get();
+        PreUpload2Response object = clientFuture.get();
+        log.info("url={}, profile={}, mid={}, resp={}", "https://member.bilibili.com/preupload",
+                profile,
+                mid, JSON.toJSONString(object));
+        return object;
     }
 
     public static String sign(Map<String, String> params, String appSecret) {
@@ -235,8 +243,7 @@ public class BiliApi {
             } catch (UnsupportedEncodingException unsupportedEncodingException) {
                 return "";
             }
-        })
-                .collect(Collectors.joining("&"));
+        }).collect(Collectors.joining("&"));
         return DigestUtils.md5Hex(body + appSecret);
     }
 
@@ -252,17 +259,14 @@ public class BiliApi {
         encryptCipher.init(Cipher.ENCRYPT_MODE, publicKey);
         byte[] secretMessageBytes = str.getBytes(StandardCharsets.UTF_8);
         byte[] encryptedMessageBytes = encryptCipher.doFinal(secretMessageBytes);
-        String encodedMessage = Base64.getEncoder().encodeToString(encryptedMessageBytes);
-        return encodedMessage;
+        return Base64.getEncoder().encodeToString(encryptedMessageBytes);
     }
 
-    public static String uploadChunk(BilibiliClient client,
-                                     String uploadUrl,
-                                     String fileName,
-                                     byte[] bytes, long size, int nowChunk,
-                                     int chunkNum) throws ExecutionException, InterruptedException, IOException {
-
-
+    public static String uploadChunk(
+            String uploadUrl,
+            String fileName,
+            byte[] bytes, long size, int nowChunk,
+            int chunkNum) throws ExecutionException, InterruptedException, IOException {
         String md5 = DigestUtils.md5Hex(bytes);
         Map<String, Object> params = new LinkedHashMap<>();
         params.put("version", "2.0.0.1054");
@@ -271,15 +275,33 @@ public class BiliApi {
         params.put("chunks", "" + chunkNum);
         params.put("md5", md5);
         params.put("file", bytes);
-        return HttpClientUtil.upload(uploadUrl, params);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Cookie","PHPSESSID="+fileName);
+        return HttpClientUtil.upload(uploadUrl, headers, params);
     }
 
-    public static Map<String, Object> publish(BilibiliClient client, String accessToken, Map<String, Object> json) throws ExecutionException, InterruptedException {
-        CompletableFuture<Map<String, Object>> clientFuture = new CompletableFuture<>();
+    public static String completeUpload(String url, Integer chunks,
+                                        Long filesize,
+                                        String md5,
+                                        String name,
+                                        String version) throws IOException {
+        Map<String, String> params = new HashMap<>();
+        params.put("chunks", "" + chunks);
+        params.put("filesize", "" + filesize);
+        params.put("md5", "" + md5);
+        params.put("name", "" + name);
+        params.put("version", "" + version);
+        return HttpClientUtil.post(url, new HashMap<>(), params, true);
+
+    }
+
+    public static AddResponse publish(BilibiliClient client, String accessToken,
+                                      Map<String, Object> json) throws ExecutionException, InterruptedException {
+        CompletableFuture<AddResponse> clientFuture = new CompletableFuture<>();
         Map<String, String> map = new HashMap<>();
         map.put("access_key", accessToken);
         String sign = sign(map, client.getBillingClientProperties().getAppSecret());
-        client.getMemberAPI().publish(accessToken, sign, json).await(new Continuation<Map<String, Object>>() {
+        client.getMemberAPI().publish(accessToken, sign, json).await(new Continuation<AddResponse>() {
             @NotNull
             @Override
             public CoroutineContext getContext() {
@@ -292,7 +314,33 @@ public class BiliApi {
             }
 
             @Override
-            public void resume(Map<String, Object> uploadResponse) {
+            public void resume(AddResponse uploadResponse) {
+                clientFuture.complete(uploadResponse);
+            }
+        });
+        AddResponse object = clientFuture.get();
+        log.info("url={}, token={}, param={}, resp={}", "https://member.bilibili.com/x/vu/client/add",
+                accessToken, JSON.toJSONString(json), JSON.toJSONString(object));
+        return object;
+    }
+
+
+    public static MyInfo myInfo(BilibiliClient client) throws ExecutionException, InterruptedException {
+        CompletableFuture<MyInfo> clientFuture = new CompletableFuture<>();
+        client.getAppAPI().myInfo().await(new Continuation<MyInfo>() {
+            @NotNull
+            @Override
+            public CoroutineContext getContext() {
+                return EmptyCoroutineContext.INSTANCE;
+            }
+
+            @Override
+            public void resumeWithException(@NotNull Throwable throwable) {
+                throwable.printStackTrace();
+            }
+
+            @Override
+            public void resume(MyInfo uploadResponse) {
                 clientFuture.complete(uploadResponse);
             }
         });

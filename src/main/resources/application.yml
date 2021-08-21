@@ -12,6 +12,10 @@ spring:
       ddl-auto: update
   thymeleaf:
     cache: false
+  task:
+    scheduling:
+      pool:
+        size: 10
 
 record:
   check-interval: 40

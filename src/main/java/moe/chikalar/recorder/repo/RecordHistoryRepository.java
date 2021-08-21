@@ -6,9 +6,15 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.util.Date;
+import java.util.List;
 
 @Repository
 public interface RecordHistoryRepository extends CrudRepository<RecordHistory, Long>, PagingAndSortingRepository<RecordHistory, Long> {
     @Transactional
     void deleteByRecordRoomId(Long id);
+
+    List<RecordHistory> findByStatusInAndUploadStatus(List<String> status, String uploadStatus);
+
+    List<RecordHistory> findByStartTimeBetween(Date start, Date end);
 }

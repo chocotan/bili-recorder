@@ -4,6 +4,7 @@ import moe.chikalar.recorder.dto.RecordConfig;
 import moe.chikalar.recorder.dto.RecordContext;
 import moe.chikalar.recorder.entity.RecordHistory;
 import moe.chikalar.recorder.repo.RecordHistoryRepository;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,8 @@ public class CreateRecordHistoryListener implements RecordListener {
         recordHistory.setFilePath(context.getPath());
         recordHistory.setFileSize(0L);
         recordHistory.setStatus("ing");
+        String title = context.getAttribute("title");
+        recordHistory.setTitle(StringUtils.isBlank(title) ? context.getRecordRoom().getTitle() : title);
         recordHistoryRepository.save(recordHistory);
         context.addAttribute("history", recordHistory);
     }

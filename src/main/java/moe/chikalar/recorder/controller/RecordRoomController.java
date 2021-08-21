@@ -97,7 +97,7 @@ public class RecordRoomController {
         if (progressDto != null) {
             progressDto.getStopStatus().set(true);
         } else {
-            log.info("[{}] 该直播间尚未开始录制 {} ", id);
+            log.info("[{}] 该直播间尚未开始录制 ", id);
         }
         recordHelper.remove(id);
         return "redirect:/record";
