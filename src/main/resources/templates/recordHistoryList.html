@@ -45,13 +45,13 @@
             <td th:if="${r.uploadStatus==null || r.uploadStatus=='0'}">
                 不上传
             </td>
-            <td th:if="${r.uploadStatus==null || r.uploadStatus=='1'}">
+            <td th:if="${r.uploadStatus=='1'}">
                 待上传
             </td>
-            <td th:if="${r.uploadStatus==null || r.uploadStatus=='2'}">
+            <td th:if="${r.uploadStatus=='2'}">
                 上传中
             </td>
-            <td th:if="${r.uploadStatus==null || r.uploadStatus=='3'}">
+            <td th:if="${r.uploadStatus=='3'}">
                 已上传
             </td>
             <td><span th:if="${r.fileSize!=null&&r.fileSize>0}" th:text="${r.fileSize/1024/1024}+'M'"></span></td>
