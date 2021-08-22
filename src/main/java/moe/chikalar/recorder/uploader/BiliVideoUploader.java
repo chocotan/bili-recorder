@@ -82,36 +82,43 @@ public class BiliVideoUploader implements VideoUploader {
             long chunkNum = (long) Math.ceil((double) fileSize / chunkSize);
             MessageDigest md5Digest = DigestUtils.getMd5Digest();
             RandomAccessFile r = new RandomAccessFile(file, "r");
-            for (int i = 0; i < chunkNum; i++) {
-                int tryCount = 0;
-                Exception toThrow = null;
-                while (tryCount < 5) {
-                    try {
-                        r.seek(i * chunkSize);
-                        byte[] bytes = new byte[(int) chunkSize];
-                        int read = r.read(bytes);
-                        if (read == -1) {
-                            break;
+            try {
+                for (int i = 0; i < chunkNum; i++) {
+                    int tryCount = 0;
+                    Exception toThrow = null;
+                    while (tryCount < 5) {
+                        try {
+                            r.seek(i * chunkSize);
+                            byte[] bytes = new byte[(int) chunkSize];
+                            int read = r.read(bytes);
+                            if (read == -1) {
+                                break;
+                            }
+                            if (read != bytes.length)
+                                bytes = ArrayUtils.subarray(bytes, 0, read);
+                            md5Digest.update(bytes);
+                            String s = BiliApi.uploadChunk(url, filename, bytes, read,
+                                    i + 1, (int) chunkNum);
+                            log.info("[{}] 上传视频 {} 进度{}/{}, resp={}", recordHistory.getRecordRoom().getId(),
+                                    file, i + 1, chunkNum, s);
+                            tryCount = 5;
+                            toThrow = null;
+                        } catch (Exception e) {
+                            log.info("[{}] 上传视频 {} 进度{}/{}, exception={}", recordHistory.getRecordRoom().getId(),
+                                    file, i + 1, chunkNum, ExceptionUtils.getStackTrace(e));
+                            toThrow = e;
                         }
-                        if (read != bytes.length)
-                            bytes = ArrayUtils.subarray(bytes, 0, read);
-                        md5Digest.update(bytes);
-                        String s = BiliApi.uploadChunk(url, filename, bytes, read,
-                                i + 1, (int) chunkNum);
-                        log.info("[{}] 上传视频 {} 进度{}/{}, resp={}", recordHistory.getRecordRoom().getId(),
-                                file, i + 1, chunkNum, s);
-                        tryCount = 5;
-                        toThrow = null;
-                    } catch (Exception e) {
-                        log.info("[{}] 上传视频 {} 进度{}/{}, exception={}", recordHistory.getRecordRoom().getId(),
-                                file, i + 1, chunkNum, ExceptionUtils.getStackTrace(e));
-                        toThrow = e;
                     }
-                }
-                if (toThrow != null) {
-                    throw toThrow;
-                }
+                    if (toThrow != null) {
+                        throw toThrow;
+                    }
 
+                }
+            } finally {
+                try {
+                    r.close();
+                } catch (Exception ignored) {
+                }
             }
             String md5 = DatatypeConverter.printHexBinary(md5Digest.digest()).toLowerCase();
             BiliApi.completeUpload(complete, (int) chunkNum, fileSize, md5,
@@ -130,6 +137,9 @@ public class BiliVideoUploader implements VideoUploader {
             dtos.add(dto);
         }
         VideoUploadDto videoUploadDto = new VideoUploadDto();
+        if(config.getUploadTid()!=null){
+            videoUploadDto.setTid(config.getUploadTid());
+        }
         Date date = recordHistory.getStartTime();
         String uname = recordHistory.getRecordRoom().getUname();
         String title = StringUtils.isNotBlank(recordHistory.getTitle()) ? recordHistory.getTitle()
@@ -148,7 +158,6 @@ public class BiliVideoUploader implements VideoUploader {
         videoUploadDto.setDynamic(desc);
         videoUploadDto.setVideos(dtos);
         videoUploadDto.setTag(config.getUname());
-
         return BiliApi.publish(client, client.getToken(),
                 JSON.parseObject(JSON.toJSONString(videoUploadDto)));
     }

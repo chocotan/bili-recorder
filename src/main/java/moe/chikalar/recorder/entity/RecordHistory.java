@@ -26,6 +26,7 @@ public class RecordHistory {
 
     // 0-不需要上传，1-待上传，2-正在上传，3-上传成功
     private String uploadStatus = "0";
+    private Integer uploadRetryCount = 0;
 
     private String extraFilePaths = "";
 

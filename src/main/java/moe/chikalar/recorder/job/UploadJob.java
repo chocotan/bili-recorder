@@ -42,6 +42,9 @@ public class UploadJob {
         // 检查是否在直播，把未在直播的上传了
         histories = histories.stream()
                 .filter(d -> {
+                    return d.getUploadRetryCount() == null || d.getUploadRetryCount() < 5;
+                })
+                .filter(d -> {
                     try {
                         Thread.sleep(6000);
                         RecordRoom recordRoom = d.getRecordRoom();
@@ -87,6 +90,9 @@ public class UploadJob {
             RecordRoom recordRoom = recordHistory.getRecordRoom();
             String data = recordRoom.getData();
             RecordConfig recordConfig = JSON.parseObject(data, RecordConfig.class);
+            if(!recordConfig.getUploadToBili()){
+                return;
+            }
             // 上传只支持mp4
             String files = recordHistory.getExtraFilePaths();
             if (StringUtils.isBlank(files)) {
@@ -103,12 +109,18 @@ public class UploadJob {
                 AddResponse upload1 = uploader.upload(recordConfig, recordHistory, fileList);
                 if (upload1 != null) {
                     recordHistory.setUploadStatus("3");
-                    historyRepository.save(recordHistory);
                 }
 
             } catch (Exception e) {
+                Integer retryCount = recordHistory.getUploadRetryCount();
+                if (retryCount == null) {
+                    retryCount = 0;
+                }
+                recordHistory.setUploadRetryCount(++retryCount);
                 log.info("[{}] 上传录播异常，等待下次重试，error={}", recordRoom.getId()
                         , ExceptionUtils.getStackTrace(e));
+            } finally {
+                historyRepository.save(recordHistory);
             }
         });
 
