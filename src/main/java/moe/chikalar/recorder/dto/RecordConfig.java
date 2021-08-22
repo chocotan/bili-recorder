@@ -7,7 +7,6 @@ public class RecordConfig {
     private String roomId;
     private String uname;
     private String saveFolder;
-    private Long retryInterval = 20L;
     private Boolean danmuRecord = false;
 
     private Boolean convertToMp4 = false;
@@ -24,7 +23,7 @@ public class RecordConfig {
     private String uploadUsername;
     private String uploadPassword;
 
-    private String titleTemplate = "【${uname}】 ${date}录播-${title}";
-    private String descTemplate = "${uname} ${datetime} 录播 \n${uname}直播间：https://live.bilibili.com/${roomId}";
+    private String uploadTitleTemplate = "【${uname}】 ${date}录播-${title}";
+    private String uploadDescTemplate = "${uname} ${datetime} 录播 \n${uname}直播间：https://live.bilibili.com/${roomId}";
     private Integer uploadTid;
 }

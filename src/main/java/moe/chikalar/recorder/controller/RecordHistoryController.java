@@ -36,6 +36,7 @@ public class RecordHistoryController {
        recordHistoryRepository.findById(id)
        .ifPresent(r->{
            r.setUploadStatus(uploadStatus);
+           r.setUploadRetryCount(0);
            recordHistoryRepository.save(r);
        });
        return "redirect:/recordHistory/list";

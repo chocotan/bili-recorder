@@ -143,12 +143,12 @@ public class BiliVideoUploader implements VideoUploader {
                 : "直播录像";
         String dateStr = new SimpleDateFormat("yyyy-MM-dd").format(date);
         String dateTimeStr = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(date);
-        title = config.getTitleTemplate().replace("${uname}", uname)
+        title = config.getUploadTitleTemplate().replace("${uname}", uname)
                 .replace("${date}", dateStr)
                 .replace("${datetime}", dateTimeStr)
                 .replace("${title}", title)
                 .replace("${roomId}", recordHistory.getRecordRoom().getRoomId());
-        String desc = config.getDescTemplate().replace("${uname}", uname)
+        String desc = config.getUploadDescTemplate().replace("${uname}", uname)
                 .replace("${date}", dateStr)
                 .replace("${datetime}", dateTimeStr)
                 .replace("${title}", title)
