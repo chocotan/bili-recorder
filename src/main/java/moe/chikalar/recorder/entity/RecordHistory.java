@@ -28,6 +28,7 @@ public class RecordHistory {
     private String uploadStatus = "0";
     private Integer uploadRetryCount = 0;
 
+    private Date updateTime;
 
     @Lob
     private String extraFilePaths = "";

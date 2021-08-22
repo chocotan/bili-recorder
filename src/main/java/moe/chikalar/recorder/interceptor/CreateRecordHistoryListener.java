@@ -25,6 +25,7 @@ public class CreateRecordHistoryListener implements RecordListener {
         recordHistory.setFilePath(context.getPath());
         recordHistory.setFileSize(0L);
         recordHistory.setStatus("ing");
+        recordHistory.setUpdateTime(new Date());
         String title = context.getAttribute("title");
         recordHistory.setTitle(StringUtils.isBlank(title) ? context.getRecordRoom().getTitle() : title);
         recordHistoryRepository.save(recordHistory);

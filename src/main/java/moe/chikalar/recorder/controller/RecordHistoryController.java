@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Date;
+
 @Controller
 @RequestMapping("recordHistory")
 public class RecordHistoryController {
@@ -37,6 +39,7 @@ public class RecordHistoryController {
        .ifPresent(r->{
            r.setUploadStatus(uploadStatus);
            r.setUploadRetryCount(0);
+           r.setUpdateTime(new Date());
            recordHistoryRepository.save(r);
        });
        return "redirect:/recordHistory/list";

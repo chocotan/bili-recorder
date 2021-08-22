@@ -23,7 +23,7 @@ public class RecordConfig {
     private String uploadUsername;
     private String uploadPassword;
 
-    private String uploadTitleTemplate = "【${uname}】 ${date}录播-${title}";
+    private String uploadTitleTemplate = "【${uname}】${date}录播-${title}";
     private String uploadDescTemplate = "${uname} ${datetime} 录播 \n${uname}直播间：https://live.bilibili.com/${roomId}";
     private Integer uploadTid;
 }

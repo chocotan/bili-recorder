@@ -47,7 +47,7 @@ public class UploadJob {
         Date to = new Date();
         Date from = new Date(to.getTime() - 12 * 3600 * 1000);
         List<RecordHistory> histories = historyRepository
-                .findByStatusInAndUploadStatusAndEndTimeBetween(Arrays.asList("done", "error"),
+                .findByStatusInAndUploadStatusAndUpdateTimeBetween(Arrays.asList("done", "error"),
                         "1", from, to);
         // 根据用户分组，只上传第一组
         Map<Long, List<RecordHistory>> groupHistories = histories.stream().collect(Collectors.groupingBy(h -> h.getRecordRoom().getId()));
