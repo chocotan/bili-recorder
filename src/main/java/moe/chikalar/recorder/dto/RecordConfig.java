@@ -25,6 +25,6 @@ public class RecordConfig {
     private String uploadPassword;
 
     private String titleTemplate = "【${uname}】 ${date}录播-${title}";
-    private String descTemplate = "${uname} ${date} 录播 \n ${uname}直播间：https://live.bilibili.com/${roomId}";
+    private String descTemplate = "${uname} ${date} 录播 \n${uname}直播间：https://live.bilibili.com/${roomId}";
     private Integer uploadTid;
 }
