@@ -14,7 +14,7 @@ public interface RecordHistoryRepository extends CrudRepository<RecordHistory, L
     @Transactional
     void deleteByRecordRoomId(Long id);
 
-    List<RecordHistory> findByStatusInAndUploadStatusAndStartTimeBetween(List<String> status,
+    List<RecordHistory> findByStatusInAndUploadStatusAndEndTimeBetween(List<String> status,
                                                                          String uploadStatus,
                                                                          Date from,
                                                                          Date to);

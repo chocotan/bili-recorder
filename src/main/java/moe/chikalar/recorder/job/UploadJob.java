@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -46,7 +47,7 @@ public class UploadJob {
         Date to = new Date();
         Date from = new Date(to.getTime() - 12 * 3600 * 1000);
         List<RecordHistory> histories = historyRepository
-                .findByStatusInAndUploadStatusAndStartTimeBetween(Arrays.asList("done", "error"),
+                .findByStatusInAndUploadStatusAndEndTimeBetween(Arrays.asList("done", "error"),
                         "1", from, to);
         // 根据用户分组，只上传第一组
         Map<Long, List<RecordHistory>> groupHistories = histories.stream().collect(Collectors.groupingBy(h -> h.getRecordRoom().getId()));
@@ -108,6 +109,9 @@ public class UploadJob {
                     files.add(h.getFilePath());
                 }
                 return files.stream();
+            }).filter(f -> {
+                File file = new File(f);
+                return file.exists() && file.length() > properties.getUploadFileSizeMin();
             }).collect(Collectors.toList());
 
             RecordHistory recordHistory = list.get(0);
