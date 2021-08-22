@@ -1,7 +1,5 @@
 package moe.chikalar.recorder.struct;
 
-import moe.chikalar.recorder.struct.Constants.Primitive;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Array;

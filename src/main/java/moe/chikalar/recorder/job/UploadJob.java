@@ -1,7 +1,6 @@
 package moe.chikalar.recorder.job;
 
 import com.alibaba.fastjson.JSON;
-import com.hiczp.bilibili.api.member.model.AddResponse;
 import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.recorder.configuration.BiliRecorderProperties;
 import moe.chikalar.recorder.dto.ProgressDto;
@@ -9,7 +8,6 @@ import moe.chikalar.recorder.dto.RecordConfig;
 import moe.chikalar.recorder.entity.RecordHistory;
 import moe.chikalar.recorder.entity.RecordRoom;
 import moe.chikalar.recorder.recorder.RecordHelper;
-import moe.chikalar.recorder.recorder.Recorder;
 import moe.chikalar.recorder.recorder.RecorderFactory;
 import moe.chikalar.recorder.repo.RecordHistoryRepository;
 import moe.chikalar.recorder.uploader.BiliVideoUploader;
@@ -20,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 

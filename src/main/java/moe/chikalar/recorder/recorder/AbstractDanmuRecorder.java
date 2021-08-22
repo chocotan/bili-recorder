@@ -1,20 +1,14 @@
 package moe.chikalar.recorder.recorder;
 
-import com.alibaba.fastjson.JSONArray;
-import io.reactivex.Scheduler;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
 import javaslang.Tuple2;
 import lombok.extern.slf4j.Slf4j;
-import moe.chikalar.recorder.dmj.bili.cmd.BaseCommand;
 import okhttp3.WebSocket;
 import okio.ByteString;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 

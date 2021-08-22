@@ -1,8 +1,10 @@
 package moe.chikalar.recorder.dmj.kugou;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.python.core.*;
+import org.python.core.PyByteArray;
+import org.python.core.PyLong;
+import org.python.core.PyObject;
+import org.python.core.PyString;
 import org.python.modules.struct;
 import org.python.util.PythonInterpreter;
 import org.slf4j.Logger;

@@ -1,10 +1,10 @@
 package moe.chikalar.recorder.dmj.bili.data;
 
+import moe.chikalar.recorder.struct.JavaStruct;
+import moe.chikalar.recorder.struct.StructException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.tomcat.util.buf.HexUtils;
-import moe.chikalar.recorder.struct.JavaStruct;
-import moe.chikalar.recorder.struct.StructException;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

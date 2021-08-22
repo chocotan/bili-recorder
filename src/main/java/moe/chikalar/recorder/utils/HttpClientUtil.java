@@ -3,7 +3,6 @@ package moe.chikalar.recorder.utils;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
-import retrofit2.http.Multipart;
 
 import java.io.IOException;
 import java.net.CookieManager;

@@ -2,37 +2,22 @@ package moe.chikalar.recorder.uploader;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.hiczp.bilibili.api.BilibiliClient;
-import com.hiczp.bilibili.api.app.model.MyInfo;
-import com.hiczp.bilibili.api.member.model.AddResponse;
-import com.hiczp.bilibili.api.member.model.PreUpload2Response;
-import com.hiczp.bilibili.api.member.model.PreUploadResponse;
 import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.recorder.api.BiliApi;
 import moe.chikalar.recorder.dto.RecordConfig;
 import moe.chikalar.recorder.entity.RecordHistory;
-import moe.chikalar.recorder.entity.RecordRoom;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import javax.xml.bind.DatatypeConverter;
-import java.io.*;
-import java.nio.charset.Charset;
-import java.security.InvalidKeyException;
+import java.io.File;
+import java.io.RandomAccessFile;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutionException;
 
 @Slf4j
 public class BiliVideoUploader implements VideoUploader {
