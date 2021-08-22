@@ -119,6 +119,7 @@ public class SplitVideo implements RecordListener {
                     }
                     long currentFileSeconds = videoInfo.get().getDuration().longValue();
                     starTime = (int) (starTime + currentFileSeconds - offsetInSeconds);
+                    extraFiles.add(newFileName);
                 }
                 // 更新history的 extraFiles字段
                 if (history != null) {
