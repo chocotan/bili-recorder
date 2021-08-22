@@ -36,7 +36,8 @@
             <td><span th:remove="tag" th:text="${r.statusText}"></span></td>
             <td th:if="${r.dataSize!=null}" th:text="${r.dataSize}+'M'"></td>
             <td th:if="${r.dataSize==null}"></td>
-            <td><a th:if="${r.status!='3'}" th:href="@{/record/startRecord(id=${r.id})}" class="btn btn-info btn-sm">开始录制</a>
+            <td>
+                <a th:if="${r.status!='3'}" th:href="@{/record/startRecord(id=${r.id})}" class="btn btn-info btn-sm">开始录制</a>
                 <a th:if="${r.status=='3'}" th:href="@{/record/stopRecord(id=${r.id})}" class="btn btn-danger btn-sm">结束录制</a>
                 <a th:if="${r.status!='3'}" th:href="@{/record/edit(id=${r.id})}" class="btn btn-info btn-sm">编辑</a>
                 <a th:if="${r.status!='3'}" th:href="@{/record/delete(id=${r.id})}" class="btn btn-danger btn-sm">删除</a>

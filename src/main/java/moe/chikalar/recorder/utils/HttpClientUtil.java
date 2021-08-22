@@ -81,7 +81,6 @@ public class HttpClientUtil {
         return string;
     }
 
-
     public static String get(String url) throws IOException {
         Response response = client.newCall(new Request.Builder()
                 .url(url)

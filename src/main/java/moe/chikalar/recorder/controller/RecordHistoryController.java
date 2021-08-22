@@ -30,4 +30,14 @@ public class RecordHistoryController {
         return "recordHistoryList";
 
     }
+
+    @GetMapping("changeUploadStatus")
+    public String updateUploadStatus(Long id, String uploadStatus){
+       recordHistoryRepository.findById(id)
+       .ifPresent(r->{
+           r.setUploadStatus(uploadStatus);
+           recordHistoryRepository.save(r);
+       });
+       return "redirect:/recordHistory/list";
+    }
 }

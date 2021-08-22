@@ -15,7 +15,7 @@
     <url>https://github.com/chocotan/bili-recorder</url>
     <description>B站直播录制工具</description>
     <properties>
-        <java.version>1.8</java.version>
+        <java.version>11</java.version>
         <repackage.classifier/>
         <kotlin.version>1.5.21</kotlin.version>
     </properties>

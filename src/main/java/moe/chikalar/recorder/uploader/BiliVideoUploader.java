@@ -1,11 +1,13 @@
 package moe.chikalar.recorder.uploader;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.hiczp.bilibili.api.BilibiliClient;
 import com.hiczp.bilibili.api.app.model.MyInfo;
 import com.hiczp.bilibili.api.member.model.AddResponse;
 import com.hiczp.bilibili.api.member.model.PreUpload2Response;
 import com.hiczp.bilibili.api.member.model.PreUploadResponse;
+import com.jayway.jsonpath.JsonPath;
 import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.recorder.api.BiliApi;
 import moe.chikalar.recorder.dto.RecordConfig;
@@ -17,10 +19,16 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,7 +38,10 @@ import java.util.concurrent.ExecutionException;
 public class BiliVideoUploader implements VideoUploader {
 
 
-    private static Map<String, BilibiliClient> clientMap = new ConcurrentHashMap<>();
+
+    private static Map<String, BiliSessionDto> sessionMap = new HashMap<>();
+
+
 
     // 1.登录
     // -- 对于每个视频
@@ -41,41 +52,42 @@ public class BiliVideoUploader implements VideoUploader {
     // 5.验证码接口 调用https://member.bilibili.com/x/geetest/pre/add
     // 6.调用http://member.bilibili.com/x/vu/client/add
     @Override
-    public AddResponse upload(RecordConfig config, RecordHistory recordHistory, List<String> files) throws Exception {
+    public String upload2(RecordConfig config, RecordHistory recordHistory, List<String> files) throws Exception {
+        // 登录开始
+        String username = config.getUploadUsername();
+        String password = config.getUploadPassword();
+        BiliSessionDto session = sessionMap.get(username);
         boolean expired = false;
-        BilibiliClient client = clientMap.get(config.getUploadUsername());
-        if (client != null) {
+        if (session == null) {
+            expired = true;
+        } else {
+            // 检查是否已经过期，调用用户信息接口
             try {
-                MyInfo myInfo = BiliApi.myInfo(client);
-                String name = myInfo.getData().getName();
-                // 没有异常，且用户名不为空，表示登陆未过期
-                if (StringUtils.isBlank(name)) {
+                String myInfo = BiliApi.appMyInfo(session);
+                String uname = JsonPath.read(myInfo, "data.name");
+                if (StringUtils.isBlank(uname)) {
                     expired = true;
                 }
             } catch (Exception e) {
                 expired = true;
             }
-        } else {
-            expired = true;
         }
-
         if (expired) {
-            client = BiliApi.login(config.getUploadUsername(), config.getUploadPassword());
-            clientMap.put(config.getUploadUsername(), client);
+            String keyAndLogin = BiliApi.getKeyAndLogin(username, password);
+            session = JSON.parseObject(keyAndLogin)
+                    .getJSONObject("data").getObject("token_info", BiliSessionDto.class);
+            session.setCreateTime(System.currentTimeMillis());
+            sessionMap.put(username, session);
         }
-        PreUploadResponse preUpload = BiliApi.preUpload(client);
-        String upcdn = "bda2";
-        String probeVersion = "20200810";
-        // mid=uid
+        // 登录结束
         List<String> names = new ArrayList<>();
         int idx = 1;
         for (String file : files) {
-            PreUpload2Response preUpload2Response = BiliApi.preUpload2(client,
-                    "ugcfr/pc3",
-                    config.getUploadUid());
-            String url = preUpload2Response.getUrl();
-            String complete = preUpload2Response.getComplete();
-            String filename = preUpload2Response.getFilename();
+            String preRes = BiliApi.preUpload(session, "ugcfr/pc3");
+            JSONObject preResObj = JSON.parseObject(preRes);
+            String url = preResObj.getString("url");
+            String complete = preResObj.getString("complete");
+            String filename = preResObj.getString("filename");
             // 分段上传
             long fileSize = new File(file).length();
             long chunkSize = 1024 * 1024 * 50;
@@ -131,13 +143,13 @@ public class BiliVideoUploader implements VideoUploader {
         for (int i = 0, namesSize = names.size(); i < namesSize; i++) {
             String n = names.get(i);
             SingleVideoDto dto = new SingleVideoDto();
-            dto.setTitle("" + i);
+            dto.setTitle("P" + (i + 1));
             dto.setDesc("");
             dto.setFilename(n);
             dtos.add(dto);
         }
         VideoUploadDto videoUploadDto = new VideoUploadDto();
-        if(config.getUploadTid()!=null){
+        if (config.getUploadTid() != null) {
             videoUploadDto.setTid(config.getUploadTid());
         }
         Date date = recordHistory.getStartTime();
@@ -158,8 +170,7 @@ public class BiliVideoUploader implements VideoUploader {
         videoUploadDto.setDynamic(desc);
         videoUploadDto.setVideos(dtos);
         videoUploadDto.setTag(config.getUname());
-        return BiliApi.publish(client, client.getToken(),
-                JSON.parseObject(JSON.toJSONString(videoUploadDto)));
+        return BiliApi.publish(session, videoUploadDto);
     }
 
 

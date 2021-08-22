@@ -24,6 +24,8 @@ import moe.chikalar.recorder.dmj.bili.data.BiliDataUtil;
 import moe.chikalar.recorder.dmj.bili.data.BiliMsg;
 import moe.chikalar.recorder.dmj.bili.data.ByteUtils;
 import moe.chikalar.recorder.dmj.bili.data.InitRequestDto;
+import moe.chikalar.recorder.uploader.BiliSessionDto;
+import moe.chikalar.recorder.uploader.VideoUploadDto;
 import moe.chikalar.recorder.utils.HttpClientUtil;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -32,9 +34,12 @@ import okhttp3.WebSocketListener;
 import okhttp3.logging.HttpLoggingInterceptor;
 import okio.ByteString;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -50,6 +55,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -57,6 +63,11 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class BiliApi {
+
+
+    // TODO 修改为从properties中读取
+    private static String appKey = "bca7e84c2d947ac6";
+    private static String appSecret = "60698ba2f68e01ce44738920a0ffe768";
 
     public static BiliResponseDto<BiliLiveStatus> getLiveStatus(String roomId) throws IOException {
         Map<String, String> additionalHeaders = new HashMap<>();
@@ -152,107 +163,119 @@ public class BiliApi {
         return HttpClientUtil.get(formatUrl, additionalHeaders);
     }
 
-
-    public static BilibiliClient login(String username, String password) throws IOException, ExecutionException, InterruptedException {
-        BilibiliClientProperties bilibiliClientProperties = new BilibiliClientProperties();
-        bilibiliClientProperties.setAppKey("bca7e84c2d947ac6");
-        bilibiliClientProperties.setAppSecret("60698ba2f68e01ce44738920a0ffe768");
-        BilibiliClient client = new BilibiliClient(bilibiliClientProperties, HttpLoggingInterceptor.Level.BASIC);
-        CompletableFuture<BilibiliClient> clientFuture = new CompletableFuture<BilibiliClient>();
-        client.login(username, password, null, null, null, new Continuation<LoginResponse>() {
-            @NotNull
-            @Override
-            public CoroutineContext getContext() {
-                return EmptyCoroutineContext.INSTANCE;
-            }
-
-            @Override
-            public void resumeWithException(@NotNull Throwable throwable) {
-
-            }
-
-            @Override
-            public void resume(LoginResponse loginResponse) {
-                clientFuture.complete(client);
-            }
-        });
-        return clientFuture.get();
-    }
-
-    public static PreUploadResponse preUpload(BilibiliClient client) throws ExecutionException, InterruptedException {
-        CompletableFuture<PreUploadResponse> clientFuture = new CompletableFuture<>();
-        client.getMemberAPI().preUpload().await(new Continuation<PreUploadResponse>() {
-            @NotNull
-            @Override
-            public CoroutineContext getContext() {
-                return EmptyCoroutineContext.INSTANCE;
-            }
-
-            @Override
-            public void resumeWithException(@NotNull Throwable throwable) {
-
-            }
-
-            @Override
-            public void resume(PreUploadResponse uploadResponse) {
-                clientFuture.complete(uploadResponse);
-            }
-        });
-        PreUploadResponse object = clientFuture.get();
-        log.info("url={}, resp={}", "https://member.bilibili.com/preupload",
-                JSON.toJSONString(object));
-        return object;
+    public static String getLoginKey() throws IOException {
+        String url = "https://passport.bilibili.com/api/oauth2/getKey";
+        Map<String, String> params = new TreeMap<>();
+        params.put("appkey", appKey);
+        params.put("build", "5370000");
+        params.put("channel", "html5_app_bili");
+        params.put("mobi_app", "android");
+        params.put("platform", "android");
+        params.put("ts", "" + System.currentTimeMillis() / 1000);
+        params.put("sign", sign(params, appSecret));
+        Map<String, String> headers = new HashMap<>();
+        long currentSecond = Instant.now().getEpochSecond();
+        headers.put("Display-ID", "XXD9E43D7A1EBB6669597650E3EE417D9E7F5-" + currentSecond);
+        headers.put("Buvid", "XXD9E43D7A1EBB6669597650E3EE417D9E7F5");
+        headers.put("User-Agent", "Mozilla/5.0 BiliDroid/5.37.0 (bbcallen@gmail.com)");
+        headers.put("Device-ID", "aBRoDWAVeRhsA3FDewMzS3lLMwM");
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url);
+        params.forEach(uriBuilder::queryParam);
+        return HttpClientUtil.post(url, headers, params, true);
     }
 
 
-    public static PreUpload2Response preUpload2(BilibiliClient client,
-                                                String profile,
-                                                String mid
-    ) throws ExecutionException, InterruptedException {
-        CompletableFuture<PreUpload2Response> clientFuture = new CompletableFuture<>();
-        client.getMemberAPI().preUpload2(
-                profile, mid).await(new Continuation<PreUpload2Response>() {
-            @NotNull
-            @Override
-            public CoroutineContext getContext() {
-                return EmptyCoroutineContext.INSTANCE;
-            }
-
-            @Override
-            public void resumeWithException(@NotNull Throwable throwable) {
-                throwable.printStackTrace();
-            }
-
-            @Override
-            public void resume(PreUpload2Response uploadResponse) {
-                clientFuture.complete(uploadResponse);
-            }
-        });
-        PreUpload2Response object = clientFuture.get();
-        log.info("url={}, profile={}, mid={}, resp={}", "https://member.bilibili.com/preupload",
-                profile,
-                mid, JSON.toJSONString(object));
-        return object;
+    public static String getKeyAndLogin(String username, String password) throws IOException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeySpecException, InvalidKeyException {
+        String loginKeyResp = getLoginKey();
+        String hash = JsonPath.read(loginKeyResp, "data.hash");
+        String key = JsonPath.read(loginKeyResp, "data.key");
+        String loginResp = login(hash, key, username, password,
+                "", "", "");
+        String codeUrl;
+        try {
+            codeUrl = JsonPath.read(loginResp, "data.url");
+        } catch (Exception e) {
+            // 正常
+            return loginResp;
+        }
+        if (StringUtils.isNotBlank(codeUrl)) {
+            // 解析url中的challenge
+            UriComponents urlComponents = UriComponentsBuilder.fromHttpUrl(codeUrl)
+                    .build();
+            String challenge = urlComponents.getQueryParams().get("challenge").get(0);
+            log.info("请在浏览器中打开 {}", codeUrl);
+            log.info("请输入validate :");
+            String validate = new Scanner(System.in).nextLine();
+            log.info("请输入challenge :");
+            challenge = new Scanner(System.in).nextLine();
+            String seccode = validate + "|jordan";
+            loginKeyResp = getLoginKey();
+            hash = JsonPath.read(loginKeyResp, "data.hash");
+            key = JsonPath.read(loginKeyResp, "data.key");
+            loginResp = login(hash, key, username, password, challenge, seccode, validate);
+            System.out.println(loginResp);
+        }
+        return loginResp;
     }
+
+
+    public static String login(
+            String hash,
+            String key,
+            String username,
+            String password,
+            String challenge,
+            String seccode,
+            String validate) throws IOException, NoSuchPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, BadPaddingException, InvalidKeySpecException, InvalidKeyException {
+
+        Map<String, String> params = new TreeMap<>();
+        params.put("appkey", appKey);
+        params.put("build", "5370000");
+        params.put("channel", "html5_app_bili");
+        params.put("mobi_app", "android");
+        params.put("platform", "android");
+        params.put("ts", "" + System.currentTimeMillis() / 1000);
+
+        Map<String, String> headers = new HashMap<>();
+        long currentSecond = Instant.now().getEpochSecond();
+        headers.put("Display-ID", "XXD9E43D7A1EBB6669597650E3EE417D9E7F5-" + currentSecond);
+        headers.put("Buvid", "XXD9E43D7A1EBB6669597650E3EE417D9E7F5");
+        headers.put("User-Agent", "Mozilla/5.0 BiliDroid/5.37.0 (bbcallen@gmail.com)");
+        headers.put("Device-ID", "aBRoDWAVeRhsA3FDewMzS3lLMwM");
+
+        params.put("username", username);
+        params.put("password", rsa(hash + password, key));
+        if (StringUtils.isNotBlank(challenge)) {
+            params.put("challenge", challenge);
+            params.put("seccode", seccode);
+            params.put("validate", validate);
+        } else {
+            params.put("challenge", "");
+            params.put("seccode", "");
+            params.put("validate", "");
+        }
+
+        params.put("sign", sign(params, appSecret));
+        String url = "https://passport.bilibili.com/x/passport-login/oauth2/login";
+        return HttpClientUtil.post(url, headers, params, true);
+    }
+
 
     public static String sign(Map<String, String> params, String appSecret) {
         // 签名规则： md5(url编码后的请求参数（body）)
-        String body = params.entrySet().stream().map(e -> {
-            try {
-                return e.getKey() + "=" + URLEncoder.encode(e.getValue(), String.valueOf(StandardCharsets.UTF_8));
-            } catch (UnsupportedEncodingException unsupportedEncodingException) {
-                return "";
-            }
-        }).collect(Collectors.joining("&"));
+        String body = params.entrySet().stream()
+                .map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
+                .collect(Collectors.joining("&"));
         return DigestUtils.md5Hex(body + appSecret);
     }
 
     public static String rsa(String str, String key) throws NoSuchPaddingException, NoSuchAlgorithmException, IllegalBlockSizeException, BadPaddingException, InvalidKeySpecException, InvalidKeyException {
         key = key
                 .replace("-----BEGIN PUBLIC KEY-----", "")
-                .replaceAll(System.lineSeparator(), "")
+                .replaceAll("\n", "")
                 .replace("-----END PUBLIC KEY-----", "");
-        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(Base64.getDecoder().decode(key.getBytes(StandardCharsets.UTF_8)));
+        byte[] decode = Base64.getDecoder().decode(key);
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decode);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         PublicKey publicKey = keyFactory.generatePublic(keySpec);
         Cipher encryptCipher = Cipher.getInstance("RSA");
@@ -260,6 +283,50 @@ public class BiliApi {
         byte[] secretMessageBytes = str.getBytes(StandardCharsets.UTF_8);
         byte[] encryptedMessageBytes = encryptCipher.doFinal(secretMessageBytes);
         return Base64.getEncoder().encodeToString(encryptedMessageBytes);
+    }
+
+    public static String preUpload(BiliSessionDto dto, String profile) throws IOException {
+        String url = "https://member.bilibili.com/preupload";
+        Map<String, String> params = new TreeMap<>();
+        params.put("appkey", appKey);
+        params.put("access_key", dto.getAccessToken());
+        params.put("build", "5370000");
+        params.put("channel", "html5_app_bili");
+        params.put("mobi_app", "android");
+        params.put("platform", "android");
+        params.put("ts", "" + System.currentTimeMillis() / 1000);
+        params.put("sign", sign(params, appSecret));
+
+        params.put("profile", profile);
+        params.put("mid", dto.getMid());
+
+        Map<String, String> headers = new HashMap<>();
+        long currentSecond = Instant.now().getEpochSecond();
+        headers.put("Display-ID", "XXD9E43D7A1EBB6669597650E3EE417D9E7F5-" + currentSecond);
+        headers.put("Buvid", "XXD9E43D7A1EBB6669597650E3EE417D9E7F5");
+        headers.put("User-Agent", "Mozilla/5.0 BiliDroid/5.37.0 (bbcallen@gmail.com)");
+        headers.put("Device-ID", "aBRoDWAVeRhsA3FDewMzS3lLMwM");
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url);
+        params.forEach(uriBuilder::queryParam);
+        return HttpClientUtil.get(uriBuilder.toUriString(), headers);
+    }
+
+
+    public static String publish(BiliSessionDto dto, VideoUploadDto data) throws IOException {
+        String url = "https://member.bilibili.com/x/vu/client/add?access_key=" + dto.getAccessToken();
+        Map<String, String> query = new HashMap<>();
+        query.put("access_key", dto.getAccessToken());
+        String sign = sign(query, appSecret);
+        url = url + "&sign=" + sign;
+        Map<String, String> headers = new HashMap<>();
+        long currentSecond = Instant.now().getEpochSecond();
+        headers.put("Display-ID", "XXD9E43D7A1EBB6669597650E3EE417D9E7F5-" + currentSecond);
+        headers.put("Buvid", "XXD9E43D7A1EBB6669597650E3EE417D9E7F5");
+        headers.put("User-Agent", "Mozilla/5.0 BiliDroid/5.37.0 (bbcallen@gmail.com)");
+        headers.put("Device-ID", "aBRoDWAVeRhsA3FDewMzS3lLMwM");
+
+        String body = JSON.toJSONString(data);
+        return HttpClientUtil.post(url, headers, body);
     }
 
     public static String uploadChunk(
@@ -276,7 +343,7 @@ public class BiliApi {
         params.put("md5", md5);
         params.put("file", bytes);
         Map<String, String> headers = new HashMap<>();
-        headers.put("Cookie","PHPSESSID="+fileName);
+        headers.put("Cookie", "PHPSESSID=" + fileName);
         return HttpClientUtil.upload(uploadUrl, headers, params);
     }
 
@@ -295,58 +362,27 @@ public class BiliApi {
 
     }
 
-    public static AddResponse publish(BilibiliClient client, String accessToken,
-                                      Map<String, Object> json) throws ExecutionException, InterruptedException {
-        CompletableFuture<AddResponse> clientFuture = new CompletableFuture<>();
-        Map<String, String> map = new HashMap<>();
-        map.put("access_key", accessToken);
-        String sign = sign(map, client.getBillingClientProperties().getAppSecret());
-        client.getMemberAPI().publish(accessToken, sign, json).await(new Continuation<AddResponse>() {
-            @NotNull
-            @Override
-            public CoroutineContext getContext() {
-                return EmptyCoroutineContext.INSTANCE;
-            }
-
-            @Override
-            public void resumeWithException(@NotNull Throwable throwable) {
-                throwable.printStackTrace();
-            }
-
-            @Override
-            public void resume(AddResponse uploadResponse) {
-                clientFuture.complete(uploadResponse);
-            }
-        });
-        AddResponse object = clientFuture.get();
-        log.info("url={}, token={}, param={}, resp={}", "https://member.bilibili.com/x/vu/client/add",
-                accessToken, JSON.toJSONString(json), JSON.toJSONString(object));
-        return object;
+    public static String appMyInfo(BiliSessionDto dto) throws IOException {
+        String url = "https://app.bilibili.com/x/v2/account/myinfo";
+        Map<String, String> params = new TreeMap<>();
+        params.put("appkey", appKey);
+        params.put("access_key", dto.getAccessToken());
+        params.put("build", "5370000");
+        params.put("channel", "html5_app_bili");
+        params.put("mobi_app", "android");
+        params.put("platform", "android");
+        params.put("ts", "" + System.currentTimeMillis() / 1000);
+        params.put("sign", sign(params, appSecret));
+        Map<String, String> headers = new HashMap<>();
+        long currentSecond = Instant.now().getEpochSecond();
+        headers.put("Display-ID", "XXD9E43D7A1EBB6669597650E3EE417D9E7F5-" + currentSecond);
+        headers.put("Buvid", "XXD9E43D7A1EBB6669597650E3EE417D9E7F5");
+        headers.put("User-Agent", "Mozilla/5.0 BiliDroid/5.37.0 (bbcallen@gmail.com)");
+        headers.put("Device-ID", "aBRoDWAVeRhsA3FDewMzS3lLMwM");
+        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url);
+        params.forEach(uriBuilder::queryParam);
+        return HttpClientUtil.get(uriBuilder.toUriString(), headers);
     }
-
-
-    public static MyInfo myInfo(BilibiliClient client) throws ExecutionException, InterruptedException {
-        CompletableFuture<MyInfo> clientFuture = new CompletableFuture<>();
-        client.getAppAPI().myInfo().await(new Continuation<MyInfo>() {
-            @NotNull
-            @Override
-            public CoroutineContext getContext() {
-                return EmptyCoroutineContext.INSTANCE;
-            }
-
-            @Override
-            public void resumeWithException(@NotNull Throwable throwable) {
-                throwable.printStackTrace();
-            }
-
-            @Override
-            public void resume(MyInfo uploadResponse) {
-                clientFuture.complete(uploadResponse);
-            }
-        });
-        return clientFuture.get();
-    }
-
 
     /**
      * 初始化ws连接，在连接之前要调用三个接口组装成一个byte数组作为第一个请求数据发送

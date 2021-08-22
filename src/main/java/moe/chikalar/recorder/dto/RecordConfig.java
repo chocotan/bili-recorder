@@ -8,9 +8,7 @@ public class RecordConfig {
     private String uname;
     private String saveFolder;
     private Long retryInterval = 20L;
-
     private Boolean danmuRecord = false;
-
 
     private Boolean convertToMp4 = false;
     private Boolean convertToMp4Delete = true;
@@ -22,14 +20,11 @@ public class RecordConfig {
     private Long splitFileSizeInM = 4000L;
     private Boolean splitFileDeleteSource = false;
 
-
     private Boolean uploadToBili = false;
     private String uploadUsername;
     private String uploadPassword;
-    private String uploadUid;
 
     private String titleTemplate = "【${uname}】 ${date}录播-${title}";
     private String descTemplate = "${uname} ${date} 录播 \n ${uname}直播间：https://live.bilibili.com/${roomId}";
-
     private Integer uploadTid;
 }
