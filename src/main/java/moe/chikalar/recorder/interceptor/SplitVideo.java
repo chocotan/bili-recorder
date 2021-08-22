@@ -76,7 +76,7 @@ public class SplitVideo implements RecordListener {
                     }
                     // 更新history的 extraFiles字段
                     if (history != null) {
-                        history.setExtraFilePaths(String.join(",", extraFiles));
+                        history.setExtraFiles(String.join(",", extraFiles));
                         historyRepository.save(history);
                     }
                 }
@@ -122,7 +122,7 @@ public class SplitVideo implements RecordListener {
                 }
                 // 更新history的 extraFiles字段
                 if (history != null) {
-                    history.setExtraFilePaths(String.join(",", extraFiles));
+                    history.setExtraFiles(String.join(",", extraFiles));
                     historyRepository.save(history);
                 }
             }

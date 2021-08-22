@@ -31,6 +31,6 @@ public class RecordHistory {
     private Date updateTime;
 
     @Lob
-    private String extraFilePaths = "";
+    private String extraFiles = "";
 
 }

@@ -103,8 +103,8 @@ public class UploadJob {
             List<String> totalFiles = list.stream().flatMap(h -> {
                 List<String> files = new ArrayList<>();
 
-                if (StringUtils.isNotBlank(h.getExtraFilePaths())) {
-                    files.addAll(Arrays.asList(h.getExtraFilePaths().split(",")));
+                if (StringUtils.isNotBlank(h.getExtraFiles())) {
+                    files.addAll(Arrays.asList(h.getExtraFiles().split(",")));
                 } else {
                     files.add(h.getFilePath());
                 }
