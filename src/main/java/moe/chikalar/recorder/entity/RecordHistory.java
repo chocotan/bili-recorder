@@ -28,6 +28,8 @@ public class RecordHistory {
     private String uploadStatus = "0";
     private Integer uploadRetryCount = 0;
 
+
+    @Lob
     private String extraFilePaths = "";
 
 }
