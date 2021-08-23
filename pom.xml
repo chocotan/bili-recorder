@@ -276,7 +276,7 @@
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                     <useReleaseProfile>true</useReleaseProfile>
                     <goals>install</goals>
-                    <arguments>-Dmaven.test.skip -DignoreSnapshots=true</arguments>
+                    <arguments>-Dmaven.test.skip -DignoreSnapshots=true -Dmaven.javadoc.skip=true</arguments>
                 </configuration>
             </plugin>
 
