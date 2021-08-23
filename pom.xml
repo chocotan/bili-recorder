@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.5.4</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath /> <!-- lookup parent from repository -->
     </parent>
     <groupId>moe.chikalar.bili</groupId>
     <artifactId>bili-recorder</artifactId>
-    <version>0.0.4-SNAPSHOT</version>
+    <version>0.0.4</version>
     <name>bili-recorder</name>
     <url>https://github.com/chocotan/bili-recorder</url>
     <description>B站直播录制工具</description>
     <properties>
         <java.version>11</java.version>
-        <repackage.classifier/>
+        <repackage.classifier />
         <kotlin.version>1.5.21</kotlin.version>
     </properties>
     <developers>
@@ -44,7 +43,7 @@
         <connection>scm:git:git@github.com:chocotan/bili-recorder.git</connection>
         <url>https://github.com/chocotan/bili-recorder.git</url>
         <developerConnection>scm:git:git@github.com:chocotan/bili-recorder.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>bili-recorder-0.0.4</tag>
     </scm>
 
 
