@@ -33,4 +33,6 @@ public class RecordHistory {
     @Lob
     private String extraFiles = "";
 
+
+    private Long realStartTime;
 }

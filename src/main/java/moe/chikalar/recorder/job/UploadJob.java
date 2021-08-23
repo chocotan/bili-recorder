@@ -42,14 +42,33 @@ public class UploadJob {
     // 定时查询直播历史，如果下一次直播开始时间和上一次结束时间小于5min，视为同一次直播
     @Scheduled(fixedDelay = 600000, initialDelay = 6000)
     public void uploadCheck() {
-        // 只查询12小时以内的，状态为done和error的，且uploadStatus为待上传
+        // 查询12小时内的，最旧的一条记录，根据这条记录的realStartTime查出来相同的记录
+        // 只查询12小时以内的，状态为done和error的，且uploadStatus为待上传，且重试次数没超标
         // 检查是否正在直播，如果正在直播，那么不处理
         Date to = new Date();
         Date from = new Date(to.getTime() - 12 * 3600 * 1000);
+        // order by startTime，取第1条
         List<RecordHistory> histories = historyRepository
-                .findByStatusInAndUploadStatusAndUploadRetryCountLessThanAndUpdateTimeBetween(
+                .findByStatusInAndUploadStatusAndUploadRetryCountLessThanAndUpdateTimeBetweenOrderByStartTimeAsc(
                         Arrays.asList("done", "error"),
                         "1", Math.toIntExact(properties.getUploadReties()), from, to);
+
+        if (histories.isEmpty()) {
+            return;
+        }
+        RecordHistory toUpload = histories.get(0);
+        log.info("共有{}条直播记录待上传，取最早的一条id={}，title={}", histories.size(), toUpload.getId(), toUpload.getTitle());
+
+        if (toUpload.getRealStartTime() != null) {
+            // 查询相同直播间，且realStartTime相等的直播记录，排序
+            histories = historyRepository.findByStatusInAndUploadStatusAndUploadRetryCountLessThanAndRealStartTimeOrderByStartTimeAsc(Arrays.asList("done", "error"),
+                    "1", Math.toIntExact(properties.getUploadReties()), toUpload.getRealStartTime());
+        }
+
+        log.info("找到{}条相同时间的记录", histories.size());
+        histories.forEach(h -> {
+            log.info("待上传记录id={},title={},startTime={}", h.getId(), h.getTitle(), h.getStartTime());
+        });
 
         // 检查是否在录制，把未在录制的上传了
         histories = histories.stream()
@@ -68,97 +87,68 @@ public class UploadJob {
                     return true;
                 }).collect(Collectors.toList());
 
-        // 根据用户分组，只上传第一组
-        Map<Long, List<RecordHistory>> groupHistories = histories.stream().collect(Collectors.groupingBy(h -> h.getRecordRoom().getId()));
-        if (groupHistories.size() <= 0) {
-            return;
-        }
-        histories = groupHistories.entrySet().stream().findFirst().get().getValue();
-
         // 按照日期时间排序分成不同的投稿
         histories.sort((a, b) -> (int) (a.getStartTime().getTime()
                 - b.getStartTime().getTime()));
-        List<List<RecordHistory>> upload = new ArrayList<>();
 
-        long lastEndTime = 0;
-        List<RecordHistory> tmp = new ArrayList<>();
-        for (int i = 0; i < histories.size(); i++) {
-            RecordHistory h = histories.get(i);
-            if (lastEndTime == 0) {
-                tmp.add(h);
-                upload.add(tmp);
-                lastEndTime = h.getStartTime().getTime();
-                continue;
-            }
-            if ((h.getStartTime().getTime() - lastEndTime) < 5 * 60 * 1000) {
-                tmp.add(h);
+        // 分隔文件
+        List<String> totalFiles = histories.stream().flatMap(h -> {
+            List<String> files = new ArrayList<>();
+
+            if (StringUtils.isNotBlank(h.getExtraFiles())) {
+                files.addAll(Arrays.asList(h.getExtraFiles().split(",")));
             } else {
-                tmp = new ArrayList<>();
-                tmp.add(h);
-                upload.add(tmp);
+                files.add(h.getFilePath());
             }
-            lastEndTime = h.getStartTime().getTime();
+            return files.stream();
+        }).filter(f -> {
+            File file = new File(f);
+            return file.exists() && file.length() > properties.getUploadFileSizeMin();
+        }).collect(Collectors.toList());
+
+        RecordHistory recordHistory = histories.get(0);
+        RecordRoom recordRoom = recordHistory.getRecordRoom();
+        String data = recordRoom.getData();
+        RecordConfig recordConfig = JSON.parseObject(data, RecordConfig.class);
+        if (!recordConfig.getUploadToBili()) {
+            log.info("[{}] uploadToBili=false，不上传", recordRoom.getId());
+            return;
         }
-
-        upload.forEach(list -> {
-            List<String> totalFiles = list.stream().flatMap(h -> {
-                List<String> files = new ArrayList<>();
-
-                if (StringUtils.isNotBlank(h.getExtraFiles())) {
-                    files.addAll(Arrays.asList(h.getExtraFiles().split(",")));
-                } else {
-                    files.add(h.getFilePath());
-                }
-                return files.stream();
-            }).filter(f -> {
-                File file = new File(f);
-                return file.exists() && file.length() > properties.getUploadFileSizeMin();
-            }).collect(Collectors.toList());
-
-            RecordHistory recordHistory = list.get(0);
-            RecordRoom recordRoom = recordHistory.getRecordRoom();
-            String data = recordRoom.getData();
-            RecordConfig recordConfig = JSON.parseObject(data, RecordConfig.class);
-            if (!recordConfig.getUploadToBili()) {
-                log.info("[{}] uploadToBili=false，不上传", recordRoom.getId());
-                return;
+        VideoUploader uploader = new BiliVideoUploader();
+        try {
+            // 准备上传文件
+            log.info("[{}] 准备上传录播，时间={}，文件列表={}",
+                    recordRoom.getId(),
+                    recordHistory.getStartTime(),
+                    totalFiles);
+            histories.forEach(h -> {
+                h.setUploadStatus("2");
+                historyRepository.save(h);
+            });
+            String uploadRes = uploader.upload2(recordConfig, recordHistory, totalFiles);
+            String bv = JSON.parseObject(uploadRes).getJSONObject("data").getString("bvid");
+            log.info("[{}] 上传成功，file={}，bv={}", recordRoom.getId(), totalFiles, bv);
+            // 成功了之后，将状态设为3
+            histories.forEach(h -> {
+                h.setUploadStatus("3");
+            });
+        } catch (Exception e) {
+            final Integer[] retryCount = {recordHistory.getUploadRetryCount()};
+            if (retryCount[0] == null) {
+                retryCount[0] = 0;
             }
-            VideoUploader uploader = new BiliVideoUploader();
-            try {
-                // 准备上传文件
-                log.info("[{}] 准备上传录播，时间={}，文件列表={}",
-                        recordRoom.getId(),
-                        recordHistory.getStartTime(),
-                        totalFiles);
-                list.forEach(h -> {
-                    h.setUploadStatus("2");
-                    historyRepository.save(h);
-                });
-                String uploadRes = uploader.upload2(recordConfig, recordHistory, totalFiles);
-                String bv = JSON.parseObject(uploadRes).getJSONObject("data").getString("bvid");
-                log.info("[{}] 上传成功，file={}，bv={}", recordRoom.getId(), totalFiles, bv);
-                // 成功了之后，将状态设为3
-                list.forEach(h -> {
-                    h.setUploadStatus("3");
-                });
-            } catch (Exception e) {
-                final Integer[] retryCount = {recordHistory.getUploadRetryCount()};
-                if (retryCount[0] == null) {
-                    retryCount[0] = 0;
-                }
-                list.forEach(h -> {
-                    recordHistory.setUploadRetryCount(++retryCount[0]);
-                });
+            histories.forEach(h -> {
+                recordHistory.setUploadRetryCount(++retryCount[0]);
+            });
 
-                log.info("[{}] 上传录播异常，等待下次重试，error={}", recordRoom.getId()
-                        , ExceptionUtils.getStackTrace(e));
-            } finally {
-                historyRepository.save(recordHistory);
-                list.forEach(h -> {
-                    historyRepository.save(h);
-                });
-            }
-        });
+            log.info("[{}] 上传录播异常，等待下次重试，error={}", recordRoom.getId()
+                    , ExceptionUtils.getStackTrace(e));
+        } finally {
+            historyRepository.save(recordHistory);
+            histories.forEach(h -> {
+                historyRepository.save(h);
+            });
+        }
 
 
     }
