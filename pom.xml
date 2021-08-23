@@ -19,6 +19,35 @@
         <repackage.classifier/>
         <kotlin.version>1.5.21</kotlin.version>
     </properties>
+    <developers>
+        <developer>
+            <id>choco</id>
+            <name>chocotan</name>
+            <email>loli@linux.com</email>
+            <url>https://chikalar.moe</url>
+            <organization>USTS.edu.cn</organization>
+            <organizationUrl>http://web.usts.edu.cn</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
+    <licenses>
+        <license>
+            <name>APACHE LICENSE, VERSION 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:git:git@github.com:chocotan/bili-recorder.git</connection>
+        <url>https://github.com/chocotan/bili-recorder.git</url>
+        <developerConnection>scm:git:git@github.com:chocotan/bili-recorder.git</developerConnection>
+        <tag>HEAD</tag>
+    </scm>
+
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -223,14 +252,14 @@
                 <executions>
                     <execution>
                         <id>build-image</id>
-                        <phase>install</phase>
+<!--                        <phase>install</phase>-->
                         <goals>
                             <goal>build</goal>
                         </goals>
                     </execution>
                     <execution>
                         <id>push-image</id>
-                        <phase>install</phase>
+<!--                        <phase>install</phase>-->
                         <goals>
                             <goal>push</goal>
                         </goals>
@@ -240,6 +269,18 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>2.5.3</version>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <useReleaseProfile>true</useReleaseProfile>
+                    <goals>install</goals>
+                    <arguments>-Dmaven.test.skip -DignoreSnapshots=true</arguments>
+                </configuration>
+            </plugin>
+
 
         </plugins>
         <resources>
