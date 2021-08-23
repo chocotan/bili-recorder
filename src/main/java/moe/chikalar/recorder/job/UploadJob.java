@@ -47,20 +47,14 @@ public class UploadJob {
         Date to = new Date();
         Date from = new Date(to.getTime() - 12 * 3600 * 1000);
         List<RecordHistory> histories = historyRepository
-                .findByStatusInAndUploadStatusAndUpdateTimeBetween(Arrays.asList("done", "error"),
-                        "1", from, to);
-        // 根据用户分组，只上传第一组
-        Map<Long, List<RecordHistory>> groupHistories = histories.stream().collect(Collectors.groupingBy(h -> h.getRecordRoom().getId()));
-        if (groupHistories.size() <= 0) {
-            return;
-        }
-        histories = groupHistories.entrySet().stream().findFirst().get().getValue();
+                .findByStatusInAndUploadStatusAndUploadRetryCountLessThanAndUpdateTimeBetween(
+                        Arrays.asList("done", "error"),
+                        "1", Math.toIntExact(properties.getUploadReties()), from, to);
+
         // 检查是否在录制，把未在录制的上传了
         histories = histories.stream()
-                .filter(d -> d.getUploadRetryCount() == null || d.getUploadRetryCount() < properties.getUploadReties())
                 .filter(d -> {
                     try {
-                        Thread.sleep(6000);
                         // 判断是否正在录制
                         RecordRoom recordRoom = d.getRecordRoom();
                         ProgressDto progressDto = recordHelper.get(recordRoom.getId());
@@ -73,6 +67,13 @@ public class UploadJob {
                     }
                     return true;
                 }).collect(Collectors.toList());
+
+        // 根据用户分组，只上传第一组
+        Map<Long, List<RecordHistory>> groupHistories = histories.stream().collect(Collectors.groupingBy(h -> h.getRecordRoom().getId()));
+        if (groupHistories.size() <= 0) {
+            return;
+        }
+        histories = groupHistories.entrySet().stream().findFirst().get().getValue();
 
         // 按照日期时间排序分成不同的投稿
         histories.sort((a, b) -> (int) (a.getStartTime().getTime()
