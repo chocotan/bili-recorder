@@ -44,9 +44,9 @@ public class UploadJob {
     public void uploadCheck() {
         // 刚启动完成的时候，要处理上次上传的异常情况
         // 将所有正在上传的修改为当前的状态
-        List<RecordHistory> data = historyRepository.findByUploadStatus("2");
-        log.info("查询出{}个异常状态的录制记录，即将更新", data.size());
-        data.forEach(h -> {
+        List<RecordHistory> error = historyRepository.findByUploadStatus("2");
+        log.info("查询出{}个异常状态的录制记录，即将更新", error.size());
+        error.forEach(h -> {
             RecordRoom recordRoom = h.getRecordRoom();
             RecordConfig config = JSON.parseObject(recordRoom.getData(), RecordConfig.class);
             Boolean uploadToBili = config.getUploadToBili();
