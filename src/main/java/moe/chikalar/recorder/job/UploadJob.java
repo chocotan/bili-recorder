@@ -42,6 +42,23 @@ public class UploadJob {
     // 定时查询直播历史，如果下一次直播开始时间和上一次结束时间小于5min，视为同一次直播
     @Scheduled(fixedDelay = 600000, initialDelay = 6000)
     public void uploadCheck() {
+        // 刚启动完成的时候，要处理上次上传的异常情况
+        // 将所有正在上传的修改为当前的状态
+        List<RecordHistory> data = historyRepository.findByUploadStatus("2");
+        log.info("查询出{}个异常状态的录制记录，即将更新", data.size());
+        data.forEach(h -> {
+            RecordRoom recordRoom = h.getRecordRoom();
+            RecordConfig config = JSON.parseObject(recordRoom.getData(), RecordConfig.class);
+            Boolean uploadToBili = config.getUploadToBili();
+            if (uploadToBili != null && uploadToBili) {
+                h.setUploadStatus("1");
+            } else {
+                h.setUploadStatus("0");
+            }
+            historyRepository.save(h);
+        });
+
+
         // 查询12小时内的，最旧的一条记录，根据这条记录的realStartTime查出来相同的记录
         // 只查询12小时以内的，状态为done和error的，且uploadStatus为待上传，且重试次数没超标
         // 检查是否正在直播，如果正在直播，那么不处理

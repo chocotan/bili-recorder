@@ -27,5 +27,7 @@ public interface RecordHistoryRepository extends CrudRepository<RecordHistory, L
 
     Optional<RecordHistory> findTop1ByRecordRoomIdOrderByStartTimeDesc(Long roomId);
 
-    List<RecordHistory>  findByStatusInAndUploadStatusAndUploadRetryCountLessThanAndRealStartTimeOrderByStartTimeAsc(List<String> asList, String s, int toIntExact, Long realStartTime);
+    List<RecordHistory> findByStatusInAndUploadStatusAndUploadRetryCountLessThanAndRealStartTimeOrderByStartTimeAsc(List<String> asList, String s, int toIntExact, Long realStartTime);
+
+    List<RecordHistory> findByUploadStatus(String uploadStatus);
 }
