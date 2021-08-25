@@ -70,6 +70,23 @@ public class UploadJob {
                         Arrays.asList("done", "error"),
                         "1", Math.toIntExact(properties.getUploadReties()), from, to);
 
+        // 检查是否在录制，把未在录制的上传了
+        histories = histories.stream()
+                .filter(d -> {
+                    try {
+                        // 判断是否正在录制
+                        RecordRoom recordRoom = d.getRecordRoom();
+                        ProgressDto progressDto = recordHelper.get(recordRoom.getId());
+                        if (progressDto != null) {
+                            return progressDto.getStopStatus().get();
+                        }
+                        return true;
+                    } catch (Exception e) {
+                        // ignored;
+                    }
+                    return true;
+                }).collect(Collectors.toList());
+
         if (histories.isEmpty()) {
             return;
         }
@@ -87,22 +104,7 @@ public class UploadJob {
             log.info("待上传记录id={},title={},startTime={}", h.getId(), h.getTitle(), h.getStartTime());
         });
 
-        // 检查是否在录制，把未在录制的上传了
-        histories = histories.stream()
-                .filter(d -> {
-                    try {
-                        // 判断是否正在录制
-                        RecordRoom recordRoom = d.getRecordRoom();
-                        ProgressDto progressDto = recordHelper.get(recordRoom.getId());
-                        if (progressDto != null) {
-                            return progressDto.getStopStatus().get();
-                        }
-                        return true;
-                    } catch (Exception e) {
-                        // ignored;
-                    }
-                    return true;
-                }).collect(Collectors.toList());
+
 
         // 按照日期时间排序分成不同的投稿
         histories.sort((a, b) -> (int) (a.getStartTime().getTime()
