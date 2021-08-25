@@ -23,9 +23,7 @@ import java.util.*;
 public class BiliVideoUploader implements VideoUploader {
 
 
-
     private static Map<String, BiliSessionDto> sessionMap = new HashMap<>();
-
 
 
     // 1.登录
@@ -75,7 +73,7 @@ public class BiliVideoUploader implements VideoUploader {
             String filename = preResObj.getString("filename");
             // 分段上传
             long fileSize = new File(file).length();
-            long chunkSize = 1024 * 1024 * 50;
+            long chunkSize = 1024 * 1024 * 5;
             long chunkNum = (long) Math.ceil((double) fileSize / chunkSize);
             MessageDigest md5Digest = DigestUtils.getMd5Digest();
             RandomAccessFile r = new RandomAccessFile(file, "r");
@@ -96,6 +94,9 @@ public class BiliVideoUploader implements VideoUploader {
                             md5Digest.update(bytes);
                             String s = BiliApi.uploadChunk(url, filename, bytes, read,
                                     i + 1, (int) chunkNum);
+                            if (s != null && !s.contains("OK")) {
+                                throw new RuntimeException("上传返回异常");
+                            }
                             log.info("[{}] 上传视频 {} 进度{}/{}, resp={}", recordHistory.getRecordRoom().getId(),
                                     file, i + 1, chunkNum, s);
                             tryCount = 5;
