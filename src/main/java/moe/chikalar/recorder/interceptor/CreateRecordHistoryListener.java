@@ -28,13 +28,15 @@ public class CreateRecordHistoryListener implements RecordListener {
         Optional<RecordHistory> lastHistoryOpt = recordHistoryRepository.findTop1ByRecordRoomIdOrderByStartTimeDesc(context.getRecordRoom().getId());
 
         lastHistoryOpt.ifPresent(l -> {
-            long endTimeInMillis = l.getEndTime().getTime();
-            long currentTimeInMillis = startTime.getTime();
-            if (currentTimeInMillis - endTimeInMillis < 5 * 60 * 1000) {
-                if (l.getRealStartTime() != null)
-                    recordHistory.setRealStartTime(l.getRealStartTime());
-                else {
-                    recordHistory.setRealStartTime(l.getStartTime().getTime());
+            if (l.getEndTime() != null) {
+                long endTimeInMillis = l.getEndTime().getTime();
+                long currentTimeInMillis = startTime.getTime();
+                if (currentTimeInMillis - endTimeInMillis < 5 * 60 * 1000) {
+                    if (l.getRealStartTime() != null)
+                        recordHistory.setRealStartTime(l.getRealStartTime());
+                    else {
+                        recordHistory.setRealStartTime(l.getStartTime().getTime());
+                    }
                 }
             }
         });

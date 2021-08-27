@@ -26,6 +26,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Component
@@ -56,14 +58,15 @@ public class RecordHelper {
         // 将状态设置为ing
         recordRoom.setStatus("3");
         recordRoomRepository.save(recordRoom);
-
         Recorder recorder = recorderOpt.get();
-        recordPool.submit(() -> {
+        AtomicLong lastWriteTime = new AtomicLong(System.currentTimeMillis());
+        Future<?> future = recordPool.submit(() -> {
             String data = recordRoom.getData();
             RecordConfig config = JSON.parseObject(data, RecordConfig.class);
             RecordResult recordResult = null;
             RecordContext context = new RecordContext();
             context.setRecordRoom(recordRoom);
+            context.addAttribute("lastWriteTime", lastWriteTime);
             try {
                 Tuple2<Boolean, String> check = checkStatus(recordRoom, recorder);
                 doRecord(recordRoom, recorder, check, context);
@@ -81,6 +84,23 @@ public class RecordHelper {
                 }
             }
         });
+
+        recordPool.submit(() -> {
+            try {
+                Thread.sleep(5000L);
+                while ((!future.isDone()) || (!future.isCancelled())) {
+                    Thread.sleep(60000);
+                    if (System.currentTimeMillis() - lastWriteTime.get() > 60000) {
+                        future.cancel(true);
+                        log.info("[{}] 状态检查出现异常，即将停止录制", recordRoom.getId());
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                // ignored
+            }
+        });
+
 
     }
 
@@ -136,7 +156,7 @@ public class RecordHelper {
         put(recordRoom.getId(), new ProgressDto(false));
         ProgressDto progressDto = ctx.get(recordRoom.getId());
         try {
-            FileUtil.record(playUrl1, context.getPath(), progressDto);
+            FileUtil.record(playUrl1, context, progressDto);
         } catch (Exception e) {
             if (e instanceof FileNotFoundException) {
                 throw new LiveStatusException("该房间未在直播 " + recordRoom.getId(), e);
