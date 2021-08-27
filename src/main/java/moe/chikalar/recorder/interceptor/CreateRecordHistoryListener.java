@@ -31,7 +31,7 @@ public class CreateRecordHistoryListener implements RecordListener {
             if (l.getEndTime() != null) {
                 long endTimeInMillis = l.getEndTime().getTime();
                 long currentTimeInMillis = startTime.getTime();
-                if (currentTimeInMillis - endTimeInMillis < 5 * 60 * 1000) {
+                if (currentTimeInMillis - endTimeInMillis < 10 * 60 * 1000) {
                     if (l.getRealStartTime() != null)
                         recordHistory.setRealStartTime(l.getRealStartTime());
                     else {
