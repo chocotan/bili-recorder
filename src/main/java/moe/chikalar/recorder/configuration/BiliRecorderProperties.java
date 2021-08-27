@@ -10,6 +10,6 @@ import org.springframework.stereotype.Component;
 public class BiliRecorderProperties {
     private Long checkInterval = 40L;
     private String workPath;
-    private Long uploadReties = 3L;
+    private Long uploadReties = 5L;
     private Long uploadFileSizeMin = 10 * 1024 * 1024L;
 }

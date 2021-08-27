@@ -63,7 +63,7 @@ public class UploadJob {
         // 只查询12小时以内的，状态为done和error的，且uploadStatus为待上传，且重试次数没超标
         // 检查是否正在直播，如果正在直播，那么不处理
         Date to = new Date();
-        Date from = new Date(to.getTime() - 12 * 3600 * 1000);
+        Date from = new Date(to.getTime() - 24 * 3600 * 1000);
         // order by startTime，取第1条
         List<RecordHistory> histories = historyRepository
                 .findByStatusInAndUploadStatusAndUploadRetryCountLessThanAndUpdateTimeBetweenOrderByStartTimeAsc(
@@ -97,9 +97,9 @@ public class UploadJob {
             // 查询相同直播间，且realStartTime相等的直播记录，排序
             histories = historyRepository.findByStatusInAndUploadStatusAndUploadRetryCountLessThanAndRealStartTimeOrderByStartTimeAsc(Arrays.asList("done", "error"),
                     "1", Math.toIntExact(properties.getUploadReties()), toUpload.getRealStartTime());
+            log.info("找到{}条相同时间的记录", histories.size());
         }
 
-        log.info("找到{}条相同时间的记录", histories.size());
         histories.forEach(h -> {
             log.info("待上传记录id={},title={},startTime={}", h.getId(), h.getTitle(), h.getStartTime());
         });
