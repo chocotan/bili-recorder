@@ -88,11 +88,11 @@ public class RecordHelper {
         recordPool.submit(() -> {
             try {
                 Thread.sleep(5000L);
-                while ((!future.isDone()) || (!future.isCancelled())) {
+                while (!future.isDone()) {
                     Thread.sleep(60000);
                     if (System.currentTimeMillis() - lastWriteTime.get() > 60000) {
                         future.cancel(true);
-                        log.info("[{}] 状态检查出现异常，即将停止录制", recordRoom.getId());
+                        log.info("[{}] 状态检查出现异常，即将停止录制", recordRoom.getRoomId());
                         break;
                     }
                 }
