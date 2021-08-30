@@ -18,7 +18,7 @@ spring:
         size: 10
 
 record:
-  check-interval: 40
+  check-interval: 30
   work-path: ${user.home}/.bili
 
 logging:
