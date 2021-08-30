@@ -149,11 +149,22 @@ public class BiliVideoUploader implements VideoUploader {
                 .replace("${datetime}", dateTimeStr)
                 .replace("${title}", title)
                 .replace("${roomId}", recordHistory.getRecordRoom().getRoomId());
+        // 只有B站类型的才有uid
+        if ("bili".equals(recordHistory.getRecordRoom().getType())) {
+            title = title.replace("${uid}",
+                    "" + recordHistory.getRecordRoom().getUid());
+        }
         String desc = config.getUploadDescTemplate().replace("${uname}", uname)
                 .replace("${date}", dateStr)
                 .replace("${datetime}", dateTimeStr)
                 .replace("${title}", title)
+                .replace("${uid}", "" + recordHistory.getRecordRoom().getUid())
                 .replace("${roomId}", recordHistory.getRecordRoom().getRoomId());
+        // 只有B站类型的才有uid
+        if ("bili".equals(recordHistory.getRecordRoom().getType())) {
+            desc = desc.replace("${uid}",
+                    "" + recordHistory.getRecordRoom().getUid());
+        }
         videoUploadDto.setTitle(title);
         videoUploadDto.setDesc(desc);
         videoUploadDto.setDynamic(desc);
