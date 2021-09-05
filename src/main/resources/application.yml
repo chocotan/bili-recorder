@@ -16,6 +16,9 @@ spring:
     scheduling:
       pool:
         size: 10
+  h2:
+    console:
+      enabled: true
 
 record:
   check-interval: 30

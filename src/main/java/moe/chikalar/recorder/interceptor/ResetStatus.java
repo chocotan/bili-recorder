@@ -42,11 +42,10 @@ public class ResetStatus implements RecordListener {
             recordRoomRepository.save(recordRoom);
         }
         RecordHistory history = recordResult.getContext().getAttribute("history");
-
-        if (history != null && recordResult.getException() == null) {
-            Date endTime = new Date();
-            history.setUpdateTime(new Date());
+        Date endTime = new Date();
+        if (history != null) {
             history.setEndTime(endTime);
+            history.setUpdateTime(endTime);
             recordHistoryRepository.save(history);
         }
         return recordResult;

@@ -105,7 +105,6 @@ public class UploadJob {
         });
 
 
-
         // 按照日期时间排序分成不同的投稿
         histories.sort((a, b) -> (int) (a.getStartTime().getTime()
                 - b.getStartTime().getTime()));
@@ -144,9 +143,13 @@ public class UploadJob {
                 h.setUploadStatus("2");
                 historyRepository.save(h);
             });
-            String uploadRes = uploader.upload2(recordConfig, recordHistory, totalFiles);
-            String bv = JSON.parseObject(uploadRes).getJSONObject("data").getString("bvid");
-            log.info("[{}] 上传成功，file={}，bv={}", recordRoom.getId(), totalFiles, bv);
+            if (!totalFiles.isEmpty()) {
+                String uploadRes = uploader.upload2(recordConfig, recordHistory, totalFiles);
+                String bv = JSON.parseObject(uploadRes).getJSONObject("data").getString("bvid");
+                log.info("[{}] 上传成功，file={}，bv={}", recordRoom.getId(), totalFiles, bv);
+            } else {
+                log.info("[{}] 无文件，file={}", recordRoom.getId(), totalFiles);
+            }
             // 成功了之后，将状态设为3
             histories.forEach(h -> {
                 h.setUploadStatus("3");

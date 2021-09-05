@@ -23,7 +23,8 @@ public class UpdateRecordHistoryListener implements RecordListener {
         if (history != null && recordResult.getException() == null) {
             history.setUpdateTime(new Date());
             Date endTime = new Date();
-            history.setEndTime(endTime);
+            if (history.getEndTime() == null)
+                history.setEndTime(endTime);
             history.setFileLength(endTime.getTime() - history.getStartTime().getTime());
             history.setStatus("done");
             history.setUploadStatus(config.getUploadToBili() ? "1" : "0");
@@ -39,7 +40,8 @@ public class UpdateRecordHistoryListener implements RecordListener {
             if (history != null) {
                 history.setUpdateTime(new Date());
                 Date endTime = new Date();
-                history.setEndTime(endTime);
+                if (history.getEndTime() == null)
+                    history.setEndTime(endTime);
                 history.setFileLength(endTime.getTime() - history.getStartTime().getTime());
                 history.setFilePath(recordResult.getContext().getPath());
                 try {
