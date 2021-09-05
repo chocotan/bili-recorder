@@ -36,8 +36,8 @@
         </tr>
         <tbody>
         <tr th:each="r:${page}">
-            <td th:text="${r.startTime}"></td>
-            <td th:text="${r.endTime}"></td>
+            <td th:text="${#dates.format(r.startTime,'MM-dd HH:mm')}"></td>
+            <td th:text="${#dates.format(r.endTime,'MM-dd HH:mm')}"></td>
             <td th:text="${r.recordRoom.roomId}"></td>
             <td th:text="${r.recordRoom.uname}"></td>
             <td th:text="${r.recordRoom.type}"></td>
@@ -58,10 +58,13 @@
             <td>
                 <a th:if="${r.uploadStatus!='2' && r.uploadStatus!='1'}" th:href="@{/recordHistory/changeUploadStatus(uploadStatus='1',id=${r.id})}"
                    class="btn btn-info btn-sm">
-                    标记上传</a>
+                    上传</a>
                 <a th:if="${r.uploadStatus=='1'}" th:href="@{/recordHistory/changeUploadStatus(uploadStatus='0',id=${r.id})}"
                    class="btn btn-info btn-sm">
-                    标记不上传</a>
+                    不上传</a>
+                <a th:href="@{/recordHistory/updateTime(id=${r.id})}"
+                   class="btn btn-info btn-sm">
+                    更新时间</a>
             </td>
         </tr>
         </tbody>
