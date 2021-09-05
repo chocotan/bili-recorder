@@ -59,7 +59,7 @@
                 <a th:if="${r.uploadStatus!='2' && r.uploadStatus!='1'}" th:href="@{/recordHistory/changeUploadStatus(uploadStatus='1',id=${r.id})}"
                    class="btn btn-info btn-sm">
                     上传</a>
-                <a th:if="${r.uploadStatus=='1'}" th:href="@{/recordHistory/changeUploadStatus(uploadStatus='0',id=${r.id})}"
+                <a th:if="${r.uploadStatus=='1' || r.uploadStatus=='2'}" th:href="@{/recordHistory/changeUploadStatus(uploadStatus='0',id=${r.id})}"
                    class="btn btn-info btn-sm">
                     不上传</a>
                 <a th:href="@{/recordHistory/updateTime(id=${r.id})}"
