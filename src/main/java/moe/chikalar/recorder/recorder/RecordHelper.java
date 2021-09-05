@@ -71,8 +71,11 @@ public class RecordHelper {
                 Tuple2<Boolean, String> check = checkStatus(recordRoom, recorder);
                 doRecord(recordRoom, recorder, check, context);
                 recordResult = RecordResult.success(context);
+                lastWriteTime.set(0L);
             } catch (Throwable e) {
                 recordResult = RecordResult.error(e, context);
+                // 标记为0表示已经结束
+                lastWriteTime.set(0L);
             } finally {
                 List<RecordListener> list = interceptors.stream().sorted(Comparator.comparingInt(RecordListener::getOrder)).collect(Collectors.toList());
                 for (RecordListener listener : list) {
@@ -88,9 +91,9 @@ public class RecordHelper {
         recordPool.submit(() -> {
             try {
                 Thread.sleep(5000L);
-                while (!future.isDone()) {
+                while (!future.isDone() && lastWriteTime.get() != 0) {
                     Thread.sleep(60000);
-                    if (System.currentTimeMillis() - lastWriteTime.get() > 60000) {
+                    if (lastWriteTime.get() != 0 && System.currentTimeMillis() - lastWriteTime.get() > 60000) {
                         future.cancel(true);
                         log.info("[{}] 状态检查出现异常，即将停止录制", recordRoom.getRoomId());
                         break;
