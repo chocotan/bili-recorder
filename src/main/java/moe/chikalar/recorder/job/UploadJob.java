@@ -82,7 +82,7 @@ public class UploadJob {
                         }
                         return true;
                     } catch (Exception e) {
-                        // ignore300000d;
+                        // ignored;
                     }
                     return true;
                 }).collect(Collectors.toList());

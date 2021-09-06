@@ -21,7 +21,7 @@ spring:
       enabled: true
 
 record:
-  check-interval: 30
+  check-interval: 25
   work-path: ${user.home}/.bili
 
 logging:
