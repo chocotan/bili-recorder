@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
+import java.util.List;
 
 @Component
 @Slf4j
@@ -23,7 +24,11 @@ public class RetryListener implements RecordListener {
         if (exception instanceof LiveRecordException) {
             log.info("[{}] 录制发生网络异常，即将重试 {}", recordRoom.getRoomId(), ExceptionUtils.getStackTrace(exception));
             if (!recordQueue.contains(recordRoom.getId())) {
-                recordQueue.offer(recordRoom.getId());
+                try {
+                    recordQueue.add(1, recordRoom.getId());
+                } catch (Exception e) {
+                    recordQueue.offer(recordRoom.getId());
+                }
             }
         }
         return recordResult;
