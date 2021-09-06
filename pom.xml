@@ -9,7 +9,7 @@
     </parent>
     <groupId>moe.chikalar.bili</groupId>
     <artifactId>bili-recorder</artifactId>
-    <version>0.0.7-SNAPSHOT</version>
+    <version>0.0.7</version>
     <name>bili-recorder</name>
     <url>https://github.com/chocotan/bili-recorder</url>
     <description>B站直播录制工具</description>
@@ -43,7 +43,7 @@
         <connection>scm:git:git@github.com:chocotan/bili-recorder.git</connection>
         <url>https://github.com/chocotan/bili-recorder.git</url>
         <developerConnection>scm:git:git@github.com:chocotan/bili-recorder.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>bili-recorder-0.0.7</tag>
     </scm>
 
 
