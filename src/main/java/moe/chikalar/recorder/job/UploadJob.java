@@ -40,7 +40,7 @@ public class UploadJob {
     private RecordHelper recordHelper;
 
     // 定时查询直播历史，如果下一次直播开始时间和上一次结束时间小于5min，视为同一次直播
-    @Scheduled(fixedDelay = 180000, initialDelay = 60000)
+    @Scheduled(fixedDelay = 120000, initialDelay = 60000)
     public void uploadCheck() {
         // 刚启动完成的时候，要处理上次上传的异常情况
         // 将所有正在上传的修改为当前的状态
@@ -62,7 +62,7 @@ public class UploadJob {
         // 查询12小时内的，最旧的一条记录，根据这条记录的realStartTime查出来相同的记录
         // 只查询12小时以内的，状态为done和error的，且uploadStatus为待上传，且重试次数没超标
         // 检查是否正在直播，如果正在直播，那么不处理
-        Date to = new Date(System.currentTimeMillis() - 5 * 60 * 1000);
+        Date to = new Date(System.currentTimeMillis() - 3 * 60 * 1000);
         Date from = new Date(to.getTime() - 24 * 3600 * 1000);
         // order by startTime，取第1条
         List<RecordHistory> histories = historyRepository
