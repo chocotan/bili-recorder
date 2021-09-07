@@ -93,7 +93,7 @@ public class LiveStatusCheckJob implements CommandLineRunner {
                     // 只有没有在录播中的 才录制
                     if (currentRecordRoom.getStatus().equals("1")) {
                         recordHelper.recordAndErrorHandle(currentRecordRoom);
-                        Thread.sleep(6000L);
+                        Thread.sleep(5000L);
                     }
                 } catch (Exception e) {
                     // ignored
