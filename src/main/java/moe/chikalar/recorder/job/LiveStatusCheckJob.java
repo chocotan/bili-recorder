@@ -1,5 +1,6 @@
 package moe.chikalar.recorder.job;
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.recorder.configuration.BiliRecorderProperties;
 import moe.chikalar.recorder.entity.RecordRoom;
@@ -56,7 +57,7 @@ public class LiveStatusCheckJob implements CommandLineRunner {
             // 检查上次录制时间
             try {
 
-                List<RecordRoom> recordRooms = recordRoomRepository.findByStatus("1");
+                List<RecordRoom> recordRooms = Lists.newArrayList(recordRoomRepository.findAll());
                 recordRooms
                         .forEach(d -> {
                             if (!recordQueue.contains(d.getId()))
@@ -94,7 +95,7 @@ public class LiveStatusCheckJob implements CommandLineRunner {
                     }
                     RecordRoom currentRecordRoom = opt.get();
                     // 只有没有在录播中的 才录制
-                    if (currentRecordRoom.getStatus().equals("1")) {
+                    if (recordHelper.get(id) == null) {
                         recordHelper.recordAndErrorHandle(currentRecordRoom);
                         Thread.sleep(5000L);
                     }

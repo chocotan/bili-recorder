@@ -57,7 +57,13 @@ public class RecordHelper {
             return;
         // 将状态设置为ing
         recordRoom.setStatus("3");
-        recordRoomRepository.save(recordRoom);
+        put(recordRoom.getId(), new ProgressDto(false));
+        try {
+            recordRoomRepository.save(recordRoom);
+        } catch (Exception e) {
+            remove(recordRoom.getId());
+            return;
+        }
         Recorder recorder = recorderOpt.get();
         AtomicLong lastWriteTime = new AtomicLong(System.currentTimeMillis());
         Future<?> future = recordPool.submit(() -> {
@@ -69,7 +75,11 @@ public class RecordHelper {
             context.addAttribute("lastWriteTime", lastWriteTime);
             try {
                 Tuple2<Boolean, String> check = checkStatus(recordRoom, recorder);
-                doRecord(recordRoom, recorder, check, context);
+                try {
+                    doRecord(recordRoom, recorder, check, context);
+                } finally {
+                    remove(recordRoom.getId());
+                }
                 recordResult = RecordResult.success(context);
                 lastWriteTime.set(0L);
             } catch (Throwable e) {
@@ -156,7 +166,7 @@ public class RecordHelper {
         }
 
         log.info("[{}] 开始录制，保存文件至 {}", recordRoom.getRoomId(), path);
-        put(recordRoom.getId(), new ProgressDto(false));
+
         ProgressDto progressDto = ctx.get(recordRoom.getId());
         try {
             FileUtil.record(playUrl1, context, progressDto);
@@ -165,8 +175,6 @@ public class RecordHelper {
                 throw new LiveStatusException("该房间未在直播 " + recordRoom.getId(), e);
             }
             throw new LiveRecordException(e);
-        } finally {
-            remove(recordRoom.getId());
         }
         return context;
     }
