@@ -70,7 +70,8 @@ public class LiveStatusCheckJob implements CommandLineRunner {
                     Thread.sleep((long) (properties.getCheckInterval()));
 
                 }
-            } catch (InterruptedException ignored) {
+            } catch (Exception ignored) {
+                log.info(ExceptionUtils.getStackTrace(ignored));
             }
         }, 5, properties.getCheckInterval(), TimeUnit.SECONDS);
         startRecordPool();
