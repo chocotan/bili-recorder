@@ -5,6 +5,7 @@ import moe.chikalar.recorder.configuration.BiliRecorderProperties;
 import moe.chikalar.recorder.entity.RecordRoom;
 import moe.chikalar.recorder.recorder.RecordHelper;
 import moe.chikalar.recorder.repo.RecordRoomRepository;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -53,26 +54,28 @@ public class LiveStatusCheckJob implements CommandLineRunner {
         es.scheduleWithFixedDelay(() -> {
             // 获取所有启用的房间
             // 检查上次录制时间
-            List<RecordRoom> recordRooms = recordRoomRepository.findByStatus("1");
-            recordRooms
-                    .forEach(d -> {
-                        if (!recordQueue.contains(d.getId()))
-                            recordQueue.add(d.getId());
-                    });
-            Calendar cal = Calendar.getInstance();
-            int hour = cal.get(Calendar.HOUR_OF_DAY);
-            if (hour < 8) {
-                // 23-8点降低频率
-                try {
+            try {
+
+                List<RecordRoom> recordRooms = recordRoomRepository.findByStatus("1");
+                recordRooms
+                        .forEach(d -> {
+                            if (!recordQueue.contains(d.getId()))
+                                recordQueue.add(d.getId());
+                        });
+                Calendar cal = Calendar.getInstance();
+                int hour = cal.get(Calendar.HOUR_OF_DAY);
+                if (hour < 8) {
+                    // 23-8点降低频率
                     Thread.sleep((long) (properties.getCheckInterval()));
-                } catch (InterruptedException ignored) {
+
                 }
+            } catch (InterruptedException ignored) {
             }
         }, 5, properties.getCheckInterval(), TimeUnit.SECONDS);
         startRecordPool();
     }
 
-    public void addToRecordPool(Long id){
+    public void addToRecordPool(Long id) {
         recordQueue.add(id);
     }
 
@@ -97,6 +100,7 @@ public class LiveStatusCheckJob implements CommandLineRunner {
                     }
                 } catch (Exception e) {
                     // ignored
+                    log.info(ExceptionUtils.getStackTrace(e));
                 }
             }
         });

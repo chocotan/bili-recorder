@@ -98,6 +98,12 @@ public class RecordRoomController {
             progressDto.getStopStatus().set(true);
         } else {
             log.info("[{}] 该直播间尚未开始录制 ", id);
+            Optional<RecordRoom> roomOpt = recordRoomRepository.findById(id);
+            if(roomOpt.isPresent()){
+                RecordRoom recordRoom = roomOpt.get();
+                recordRoom.setStatus("1");
+                recordRoomRepository.save(recordRoom);
+            }
         }
         recordHelper.remove(id);
         return "redirect:/record";
