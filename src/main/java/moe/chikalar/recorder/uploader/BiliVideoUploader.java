@@ -76,8 +76,7 @@ public class BiliVideoUploader implements VideoUploader {
             long chunkSize = 1024 * 1024 * 5;
             long chunkNum = (long) Math.ceil((double) fileSize / chunkSize);
             MessageDigest md5Digest = DigestUtils.getMd5Digest();
-            RandomAccessFile r = new RandomAccessFile(file, "r");
-            try {
+            try (RandomAccessFile r = new RandomAccessFile(file, "r")) {
                 for (int i = 0; i < chunkNum; i++) {
                     int tryCount = 0;
                     Exception toThrow = null;
@@ -111,11 +110,6 @@ public class BiliVideoUploader implements VideoUploader {
                         throw toThrow;
                     }
 
-                }
-            } finally {
-                try {
-                    r.close();
-                } catch (Exception ignored) {
                 }
             }
             String md5 = DatatypeConverter.printHexBinary(md5Digest.digest()).toLowerCase();
