@@ -74,8 +74,8 @@ public class RecordHelper {
             context.setRecordRoom(recordRoom);
             context.addAttribute("lastWriteTime", lastWriteTime);
             try {
-                Tuple2<Boolean, String> check = checkStatus(recordRoom, recorder);
                 try {
+                    Tuple2<Boolean, String> check = checkStatus(recordRoom, recorder);
                     doRecord(recordRoom, recorder, check, context);
                 } finally {
                     remove(recordRoom.getId());
