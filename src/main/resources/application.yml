@@ -6,7 +6,7 @@ server:
 spring:
   datasource:
     hikari:
-      jdbc-url: jdbc:h2:async:${record.work-path}/db
+      jdbc-url: jdbc:h2:retry:${record.work-path}/db
   jpa:
     hibernate:
       ddl-auto: update
