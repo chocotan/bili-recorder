@@ -1,7 +1,6 @@
 # bilibili直播录播工具
 
-[![Maven](https://github.com/chocotan/bili-recorder/actions/workflows/maven.yml/badge.svg)](https://github.com/chocotan/bili-recorder/actions/workflows/maven.yml)
-
+[![Build](https://github.com/chocotan/bili-recorder/actions/workflows/maven-docker.yml/badge.svg)](https://github.com/chocotan/bili-recorder/actions/workflows/maven-docker.yml)
 这是一个大概开发好已经能用的录播工具，支持录制弹幕
 
 ## 打包
