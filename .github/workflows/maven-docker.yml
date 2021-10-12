@@ -1,7 +1,7 @@
 # This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
-name: Java CI with Maven
+name: Java CI with Maven And Publish to docker hub
 
 on:
   push:
@@ -22,5 +22,11 @@ jobs:
         java-version: '11'
         distribution: 'adopt'
         cache: maven
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Build with Maven
-      run: mvn clean package docker:build -Dmaven.test.skip
+      run: mvn clean package docker:build docker:push -Dmaven.test.skip
+
