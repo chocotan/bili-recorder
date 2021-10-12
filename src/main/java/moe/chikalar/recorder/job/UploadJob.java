@@ -59,8 +59,8 @@ public class UploadJob {
         });
 
 
-        // 查询12小时内的，最旧的一条记录，根据这条记录的realStartTime查出来相同的记录
-        // 只查询12小时以内的，状态为done和error的，且uploadStatus为待上传，且重试次数没超标
+        // 查询24小时内的，最旧的一条记录，根据这条记录的realStartTime查出来相同的记录
+        // 只查询24小时以内的，状态为done和error的，且uploadStatus为待上传，且重试次数没超标
         // 检查是否正在直播，如果正在直播，那么不处理
         Date to = new Date(System.currentTimeMillis() - 3 * 60 * 1000);
         Date from = new Date(to.getTime() - 24 * 3600 * 1000);
