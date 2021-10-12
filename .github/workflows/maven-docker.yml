@@ -28,5 +28,5 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Build with Maven
-      run: mvn clean package docker:build docker:push -Dmaven.test.skip
+      run: mvn clean package docker:build docker:push -X -e -Dmaven.test.skip
 
