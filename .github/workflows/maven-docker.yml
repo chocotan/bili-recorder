@@ -27,6 +27,8 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: cat data
+      run: cat /home/runner/.docker/config.json
     - name: Build with Maven
       run: mvn clean package docker:build docker:push -X -e -Dmaven.test.skip
 
