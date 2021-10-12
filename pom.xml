@@ -225,7 +225,7 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>1.2.2</version>
                 <configuration>
-                    <imageName>registry.hub.docker.com/chocotan/bili-recorder:${project.version}</imageName>
+                    <imageName>chocotan/bili-recorder:${project.version}</imageName>
                     <baseImage>lm2343635/openjdk-11-slim-ffmpeg:latest</baseImage>
                     <entryPoint>["sh","-c","java $JAVA_OPT -jar ${project.build.finalName}.jar"]</entryPoint>
                     <env>
@@ -246,7 +246,7 @@
                         <imageTag>${project.version}</imageTag>
                         <imageTag>latest</imageTag>
                     </imageTags>
-                    <registryUrl>https://registry.hub.docker.com</registryUrl>
+<!--                    <registryUrl>https://registry.hub.docker.com</registryUrl>-->
                 </configuration>
                 <executions>
                     <execution>
