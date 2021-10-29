@@ -57,7 +57,7 @@ public class LiveStatusCheckJob implements CommandLineRunner {
             // 检查上次录制时间
             try {
 
-                List<RecordRoom> recordRooms = Lists.newArrayList(recordRoomRepository.findAll());
+                List<RecordRoom> recordRooms = Lists.newArrayList(recordRoomRepository.findByStatus("1"));
                 recordRooms
                         .forEach(d -> {
                             if (!recordQueue.contains(d.getId()))
