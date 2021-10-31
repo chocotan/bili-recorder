@@ -1,15 +1,19 @@
 package moe.chikalar.recorder.recorder;
 
+import com.jayway.jsonpath.JsonPath;
 import javaslang.Tuple;
 import javaslang.Tuple2;
+import lombok.extern.slf4j.Slf4j;
 import moe.chikalar.recorder.api.BiliApi;
 import moe.chikalar.recorder.entity.RecordRoom;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.List;
 
 @Component
+@Slf4j
 public class BiliRecorder implements Recorder {
 
     public BiliApi.BiliResponseDto<BiliApi.BiliLiveStatus> getLiveStatus(String roomId) throws IOException {
@@ -36,16 +40,26 @@ public class BiliRecorder implements Recorder {
 
     @Override
     public Tuple2<Boolean, String> check(RecordRoom recordRoom) throws IOException {
-        // TODO 如果b站接口异常（被限制），这里会nullpointer
-        BiliApi.BiliRoomInfo roomInfo = BiliApi.getRoomInfo(recordRoom.getRoomId(),
-                recordRoom.getUid()).getData();
-
-        boolean liveStatus = roomInfo.getLiveStatus() == 1;
-        if (liveStatus) {
-            return Tuple.of(liveStatus, roomInfo.getTitle());
+        BiliApi.BiliResponseDto<BiliApi.RoomInitDto> roomInfo = BiliApi.roomInit(recordRoom.getRoomId());
+        boolean liveStatus = false;
+        String title = "直播";
+        if (roomInfo.getData() != null) {
+            liveStatus = roomInfo.getData().getLive_status() == 1;
+            if (liveStatus) {
+                try {
+                    String userInfo = BiliApi.getUserInfo(recordRoom.getRoomId(), recordRoom.getUid());
+                    title = JsonPath.read(userInfo, "$.data.live_room.title");
+                } catch (Exception e) {
+                    log.error("bili接口异常，{}，{}", "x/space/acc/info", ExceptionUtils.getStackTrace(e));
+                }
+            }
         } else {
-            return Tuple.of(liveStatus, "");
+            String userInfo = BiliApi.getUserInfo(recordRoom.getRoomId(), recordRoom.getUid());
+            title = JsonPath.read(userInfo, "$.data.live_room.title");
+            Object liveStatusVal = JsonPath.read(userInfo, "$.data.live_room.liveStatus");
+            liveStatus = liveStatusVal.equals(1) || liveStatusVal.equals("1");
         }
+        return Tuple.of(liveStatus, title);
     }
 
     @Override

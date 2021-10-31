@@ -76,6 +76,8 @@ public class BiliApi {
         return resp;
     }
 
+    // 该接口已过期
+    @Deprecated
     public static BiliResponseDto<BiliRoomInfo> getRoomInfo(String roomId, Long uid) throws IOException {
         String url = "https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld";
         Map<String, String> additionalHeaders = new HashMap<>();
@@ -83,6 +85,23 @@ public class BiliApi {
         additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
         String res = HttpClientUtil.get(url + "?mid=" + uid, additionalHeaders);
         BiliResponseDto<BiliRoomInfo> resp = JSON.parseObject(res, new TypeReference<BiliResponseDto<BiliRoomInfo>>() {
+        });
+        return resp;
+    }
+
+    public static String getUserInfo(String rid, Long uid) throws IOException {
+        Map<String, String> additionalHeaders = new HashMap<>();
+        additionalHeaders.put("referer", "https://live.bilibili.com/" + rid);
+        additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
+        return HttpClientUtil.get("https://api.bilibili.com/x/space/acc/info?mid=" + uid, additionalHeaders);
+    }
+
+    public static BiliResponseDto<RoomInitDto> roomInit(String roomId) throws IOException {
+        Map<String, String> additionalHeaders = new HashMap<>();
+        additionalHeaders.put("referer", "https://live.bilibili.com/" + roomId);
+        additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
+        String res = HttpClientUtil.get("https://api.live.bilibili.com/room/v1/Room/room_init?id=" + roomId, additionalHeaders);
+        BiliResponseDto<RoomInitDto> resp = JSON.parseObject(res, new TypeReference<BiliResponseDto<RoomInitDto>>() {
         });
         return resp;
     }
@@ -133,13 +152,6 @@ public class BiliApi {
         return null;
     }
 
-
-    public String roomInit(String roomId) throws IOException {
-        Map<String, String> additionalHeaders = new HashMap<>();
-        additionalHeaders.put("referer", "https://live.bilibili.com/" + roomId);
-        additionalHeaders.put("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36");
-        return HttpClientUtil.get("https://api.live.bilibili.com/room/v1/Room/room_init?id=" + roomId, additionalHeaders);
-    }
 
     public String playUrl(String roomId) throws IOException {
         String url = "https://api.live.bilibili.com/room/v1/Room/playUrl?cid=%s&platform=web&qn=10000";
@@ -496,10 +508,16 @@ public class BiliApi {
         private Integer liveStatus;
         private String url;
         private String title;
-        private String coverc;
+        private String cover;
         private Integer online;
         private Long roomid;
         private Long broadcastType;
         private Long onlineHidden;
+    }
+
+    @Data
+    public static class RoomInitDto {
+        private Long room_id;
+        private Integer live_status;
     }
 }
