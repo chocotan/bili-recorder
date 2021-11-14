@@ -46,7 +46,7 @@ public class NewBiliDanmuRecorder extends AbstractDanmuRecorder {
 
     @Override
     public List<String> decode(byte[] bytes) throws Exception {
-        return BiliDataUtil.handle_Message(ByteBuffer.wrap(bytes));
+        return BiliDataUtil.decodeMsg(ByteBuffer.wrap(bytes));
 
     }
 
