@@ -36,6 +36,8 @@ public class RecordHelper {
 
     private final Map<Long, ProgressDto> ctx = new HashMap<>();
 
+    private final Map<Long, Boolean> processCtx = new HashMap<>();
+
     private static final ExecutorService recordPool = Executors.newFixedThreadPool(100);
 
     @Autowired
@@ -53,11 +55,12 @@ public class RecordHelper {
     public void recordAndErrorHandle(RecordRoom recordRoom) {
         log.info("[{}] 接收到录制任务", recordRoom.getRoomId());
         Optional<Recorder> recorderOpt = recorderFactory.getRecorder(recordRoom.getType());
-        if (!recorderOpt.isPresent())
+        if (recorderOpt.isEmpty())
             return;
         // 将状态设置为ing
         recordRoom.setStatus("3");
         put(recordRoom.getId(), new ProgressDto(false));
+        processCtx.put(recordRoom.getId(), true);
         try {
             recordRoomRepository.save(recordRoom);
         } catch (Exception e) {
@@ -73,6 +76,7 @@ public class RecordHelper {
             RecordContext context = new RecordContext();
             context.setRecordRoom(recordRoom);
             context.addAttribute("lastWriteTime", lastWriteTime);
+
             try {
                 try {
                     Tuple2<Boolean, String> check = checkStatus(recordRoom, recorder);
@@ -95,6 +99,8 @@ public class RecordHelper {
                         log.error(ExceptionUtils.getStackTrace(e));
                     }
                 }
+                processCtx.put(recordRoom.getId(), false);
+
             }
         });
 
@@ -186,6 +192,11 @@ public class RecordHelper {
 
     public ProgressDto get(Long id) {
         return ctx.get(id);
+    }
+
+
+    public Boolean getProcessStatus(Long id) {
+        return processCtx.get(id);
     }
 
     public void remove(Long id) {

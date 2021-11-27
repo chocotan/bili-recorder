@@ -77,7 +77,10 @@ public class UploadJob {
                         // 判断是否正在录制
                         RecordRoom recordRoom = d.getRecordRoom();
                         ProgressDto progressDto = recordHelper.get(recordRoom.getId());
-                        if (progressDto != null) {
+                        Boolean processStatus = recordHelper.getProcessStatus(recordRoom.getId());
+                        // 这里判断是否在分割视频/转码，是的话也不处理，否则会出现提前上传分P的情况，虽然很少见
+                        if (processStatus != null && !processStatus
+                                && progressDto != null) {
                             return progressDto.getStopStatus().get();
                         }
                         return true;
