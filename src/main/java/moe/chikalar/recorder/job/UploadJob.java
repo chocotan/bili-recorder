@@ -40,7 +40,7 @@ public class UploadJob {
     private RecordHelper recordHelper;
 
     // 定时查询直播历史，如果下一次直播开始时间和上一次结束时间小于5min，视为同一次直播
-    @Scheduled(fixedDelay = 120000, initialDelay = 600)
+    @Scheduled(fixedDelay = 120000, initialDelay = 60000)
     public void uploadCheck() {
         // 刚启动完成的时候，要处理上次上传的异常情况
         // 将所有正在上传的修改为当前的状态
