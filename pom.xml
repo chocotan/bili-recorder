@@ -198,6 +198,12 @@
             <artifactId>brotli4j</artifactId>
             <version>1.6.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.4.1</version>
+        </dependency>
     </dependencies>
 
 

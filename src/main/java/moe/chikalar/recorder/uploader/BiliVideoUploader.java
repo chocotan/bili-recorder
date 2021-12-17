@@ -23,9 +23,6 @@ import java.util.*;
 public class BiliVideoUploader implements VideoUploader {
 
 
-    private static Map<String, BiliSessionDto> sessionMap = new HashMap<>();
-
-
     // 1.登录
     // -- 对于每个视频
     // 2.preupload接口
@@ -39,34 +36,30 @@ public class BiliVideoUploader implements VideoUploader {
         // 登录开始
         String username = config.getUploadUsername();
         String password = config.getUploadPassword();
-        BiliSessionDto session = sessionMap.get(username);
+        String accessToken = config.getUploadAccessToken();
+        String mid = config.getUploadMid();
+        if (StringUtils.isBlank(accessToken)) {
+            throw new RuntimeException("accessToken为空，不上传, " + username);
+        }
         boolean expired = false;
-        if (session == null) {
-            expired = true;
-        } else {
-            // 检查是否已经过期，调用用户信息接口
-            try {
-                String myInfo = BiliApi.appMyInfo(session);
-                String uname = JsonPath.read(myInfo, "data.name");
-                if (StringUtils.isBlank(uname)) {
-                    expired = true;
-                }
-            } catch (Exception e) {
+        // 检查是否已经过期，调用用户信息接口
+        try {
+            String myInfo = BiliApi.appMyInfo(accessToken);
+            String uname = JsonPath.read(myInfo, "data.name");
+            if (StringUtils.isBlank(uname)) {
                 expired = true;
             }
+        } catch (Exception e) {
+            expired = true;
         }
         if (expired) {
-            String keyAndLogin = BiliApi.getKeyAndLogin(username, password);
-            session = JSON.parseObject(keyAndLogin)
-                    .getJSONObject("data").getObject("token_info", BiliSessionDto.class);
-            session.setCreateTime(System.currentTimeMillis());
-            sessionMap.put(username, session);
+            throw new RuntimeException("登录已过期，请重新登录, " + username);
         }
         // 登录结束
         List<String> names = new ArrayList<>();
         int idx = 1;
         for (String file : files) {
-            String preRes = BiliApi.preUpload(session, "ugcfr/pc3");
+            String preRes = BiliApi.preUpload(accessToken, mid, "ugcfr/pc3");
             JSONObject preResObj = JSON.parseObject(preRes);
             String url = preResObj.getString("url");
             String complete = preResObj.getString("complete");
@@ -164,7 +157,7 @@ public class BiliVideoUploader implements VideoUploader {
         videoUploadDto.setDynamic(desc);
         videoUploadDto.setVideos(dtos);
         videoUploadDto.setTag(config.getUname());
-        return BiliApi.publish(session, videoUploadDto);
+        return BiliApi.publish(accessToken, videoUploadDto);
     }
 
 

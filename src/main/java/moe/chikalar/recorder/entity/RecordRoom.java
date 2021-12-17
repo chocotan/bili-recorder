@@ -64,6 +64,16 @@ public class RecordRoom {
         }
     }
 
+    @Transient
+    public Boolean getUploadToBili() {
+        try {
+            RecordConfig recordConfig = JSON.parseObject(data, RecordConfig.class);
+            return recordConfig.getUploadToBili() != null && recordConfig.getUploadToBili();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

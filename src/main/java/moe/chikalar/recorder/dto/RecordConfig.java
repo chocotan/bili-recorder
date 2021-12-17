@@ -21,6 +21,12 @@ public class RecordConfig {
 
     private Boolean uploadToBili = false;
     private String uploadUsername;
+    private String uploadAccessToken;
+    private String uploadRefreshToken;
+    private String uploadMid;
+    private Long uploadTokenCreateTime;
+    // B站疑似已经关闭密码登录接口， 或者接口需要验证
+    @Deprecated
     private String uploadPassword;
 
     private String uploadTitleTemplate = "【${uname}】${datetime}录播-${title}";

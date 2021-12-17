@@ -284,11 +284,11 @@ public class BiliApi {
         return Base64.getEncoder().encodeToString(encryptedMessageBytes);
     }
 
-    public static String preUpload(BiliSessionDto dto, String profile) throws IOException {
+    public static String preUpload(String accessToken, String mid, String profile) throws IOException {
         String url = "https://member.bilibili.com/preupload";
         Map<String, String> params = new TreeMap<>();
         params.put("appkey", appKey);
-        params.put("access_key", dto.getAccessToken());
+        params.put("access_key", accessToken);
         params.put("build", "5370000");
         params.put("channel", "html5_app_bili");
         params.put("mobi_app", "android");
@@ -297,7 +297,7 @@ public class BiliApi {
         params.put("sign", sign(params, appSecret));
 
         params.put("profile", profile);
-        params.put("mid", dto.getMid());
+        params.put("mid", mid);
 
         Map<String, String> headers = new HashMap<>();
         long currentSecond = Instant.now().getEpochSecond();
@@ -311,10 +311,10 @@ public class BiliApi {
     }
 
 
-    public static String publish(BiliSessionDto dto, VideoUploadDto data) throws IOException {
-        String url = "https://member.bilibili.com/x/vu/client/add?access_key=" + dto.getAccessToken();
+    public static String publish(String accessToken, VideoUploadDto data) throws IOException {
+        String url = "https://member.bilibili.com/x/vu/client/add?access_key=" + accessToken;
         Map<String, String> query = new HashMap<>();
-        query.put("access_key", dto.getAccessToken());
+        query.put("access_key", accessToken);
         String sign = sign(query, appSecret);
         url = url + "&sign=" + sign;
         Map<String, String> headers = new HashMap<>();
@@ -361,11 +361,11 @@ public class BiliApi {
 
     }
 
-    public static String appMyInfo(BiliSessionDto dto) throws IOException {
+    public static String appMyInfo(String accessToken) throws IOException {
         String url = "https://app.bilibili.com/x/v2/account/myinfo";
         Map<String, String> params = new TreeMap<>();
         params.put("appkey", appKey);
-        params.put("access_key", dto.getAccessToken());
+        params.put("access_key", accessToken);
         params.put("build", "5370000");
         params.put("channel", "html5_app_bili");
         params.put("mobi_app", "android");
@@ -381,6 +381,33 @@ public class BiliApi {
         UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl(url);
         params.forEach(uriBuilder::queryParam);
         return HttpClientUtil.get(uriBuilder.toUriString(), headers);
+    }
+
+    public static BiliResponseDto<GenerateQRDto> generateQRUrlTV() throws IOException {
+        Map<String, String> params = new TreeMap<>();
+        params.put("appkey", "4409e2ce8ffd12b8");
+        params.put("local_id", "0");
+        params.put("ts", "0");
+        params.put("sign", "" + sign(params, "59b43e04ad6965f34319062b478f83dd"));
+        String res = HttpClientUtil.post("http://passport.bilibili.com/x/passport-tv-login/qrcode/auth_code", new HashMap<>(), params, true);
+        BiliResponseDto<GenerateQRDto> resp = JSON.parseObject(res, new TypeReference<BiliResponseDto<GenerateQRDto>>() {
+        });
+        return resp;
+    }
+
+    public static String loginOnTV(String authCode) throws IOException {
+        String url = "http://passport.bilibili.com/x/passport-tv-login/qrcode/poll";
+        Map<String, String> params = new TreeMap<>();
+        params.put("appkey", "4409e2ce8ffd12b8");
+        params.put("auth_code", authCode);
+        params.put("local_id", "0");
+        params.put("ts", "0");
+        params.put("sign", "" + sign(params, "59b43e04ad6965f34319062b478f83dd"));
+        return HttpClientUtil.post(url, new HashMap<>(), params, true);
+    }
+
+    public static void main(String[] args) throws IOException {
+        System.out.println(generateQRUrlTV());
     }
 
     /**
@@ -519,5 +546,11 @@ public class BiliApi {
     public static class RoomInitDto {
         private Long room_id;
         private Integer live_status;
+    }
+
+    @Data
+    public static class GenerateQRDto {
+        private String url;
+        private String auth_code;
     }
 }

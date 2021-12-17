@@ -28,7 +28,6 @@
 * splitFileSizeInM：每多少M分割成一个文件
 * uploadToBili：是否上传到B站
 * uploadUsername：上传的账号用户名
-* uploadPassword：上传的账号密码
 * uploadTitleTemplate：上传的标题模板
 * uploadDescTemplate：上传的描述模板
 
@@ -36,7 +35,7 @@
 
 ## 自动上传的相关说明
 
-B站密码登录方式目前疑似不可用
+B站密码登录方式目前疑似不可用，本应用切换至TV扫码接口，请在列表页扫码登录，暂不确定登录有效期
 
 * 修改uploadToBili后只针对之后录制的视频有效，之前的录制记录不会生效
 * 自动上传是每2分钟检查一次，一次上传一个投稿
